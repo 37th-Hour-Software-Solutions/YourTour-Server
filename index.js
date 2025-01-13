@@ -1,14 +1,14 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var session = require('express-session')
-var MemoryStore = require('memorystore')(session)
-var process = require('process');
-var cors = require('cors');
-var crypto = require('crypto');
-var dotenv = require('dotenv');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const session = require('express-session')
+const MemoryStore = require('memorystore')(session)
+const process = require('process');
+const cors = require('cors');
+const crypto = require('crypto');
+const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config();
@@ -25,11 +25,11 @@ dotenv.config();
 //   }
 // }
 
-var app = express();
+const app = express();
 
 // Routes
-var authRouter = require('./routes/auth')
-var generateRouter = require('./routes/generate')
+const authRouter = require('./routes/auth')
+const generateRouter = require('./routes/generate')
 
 // Initialize the database
 // initialize();
