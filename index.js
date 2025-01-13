@@ -29,6 +29,7 @@ var app = express();
 
 // Routes
 var authRouter = require('./routes/auth')
+var generateRouter = require('./routes/generate')
 
 // Initialize the database
 // initialize();
@@ -72,7 +73,7 @@ app.use(cookieParser());
 
 // API routes
 app.use('/auth', authRouter);
-
+app.use('/generate', generateRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
