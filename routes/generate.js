@@ -4,6 +4,11 @@ const axios = require("axios");
 const router = express.Router();
 const models = require("../utils/models");
 
+/**
+ * @param {string} city - The name of the city (required)
+ * @param {string} state - The state of the city (required)
+ * @returns {string} - The text of the Wikipedia page
+ */
 async function getTextFromWikipedia(city, state) {
     // Build the Wikipedia URL
     const cityClean = city.replace(/ /g, "_");
@@ -28,6 +33,12 @@ async function getTextFromWikipedia(city, state) {
         });
 }
 
+/**
+ * @param {string} text - The text to summarize (required)
+ * @param {string} city - The name of the city (required)
+ * @param {string} state - The state of the city (required)
+ * @returns {Object} - A JSON object with the summary of the text
+ */
 async function summarizeText(text, city, state) {
     return models.client.chat.completions.create({
         model: "gpt-4o",
@@ -45,6 +56,11 @@ async function summarizeText(text, city, state) {
     });
 }
 
+/**
+ * @param {string} city - The name of the city (required)
+ * @param {string} state - The state of the city (required)
+ * @returns {Object} - A JSON object with the facts about the city
+ */
 async function generateCityFacts(city, state) {
     const text = await getTextFromWikipedia(city, state);
     const summary = await summarizeText(text, city, state);
@@ -56,15 +72,33 @@ async function generateCityFacts(city, state) {
 }
 
 /**
- * Generate facts about a city
- * 
- * @param {string} city - The name of the city (required)
- * @param {string} state - The state of the city (required)
- * @returns {Object} - A JSON object with the facts about the city
+ * @swagger
+ * /generate/city/{city}/{state}:
+ *   get:
+ *     summary: Generate facts about a city
+ *     description: Generate facts about a city
+ *     tags: [Generate]
+ *     parameters:
+ *       - in: path
+ *         name: city
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the city
+ *       - in: path
+ *         name: state
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The state of the city
+ *     responses:
+ *       '200':
+ *         description: A JSON object with the facts about the city
+ *       '400':
+ *         description: Missing required fields
+ *       '500':
+ *         description: Error generating facts
  */
-
-// TODO: Add caching so that we generate facts for a city only once, store it, and then return it.
-// This will help keep API cost down, require speeds up, and overall ensure consistent facts to all users.
 router.get("/city/:city/:state", async (req, res) => {
     const { city, state } = req.params;
     if (!city || !state) {

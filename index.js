@@ -9,6 +9,7 @@ const process = require('process');
 const cors = require('cors');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
+const { swaggerDocs } = require('./swagger');
 
 // Load environment variables
 dotenv.config();
@@ -74,6 +75,12 @@ app.use(cookieParser());
 // API routes
 app.use('/auth', authRouter);
 app.use('/generate', generateRouter);
+
+// Setup Swagger docs (before error handlers)
+if (process.env.NODE_ENV === 'development') {
+  swaggerDocs(app, 3000);
+}
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
