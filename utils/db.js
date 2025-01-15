@@ -9,6 +9,7 @@ const db = require('better-sqlite3')('app.db');
  */
 async function init() {
     db.pragma('journal_mode = WAL'); // WAL is a journal mode that allows for faster writes and better concurrency
+    db.exec('PRAGMA foreign_keys = ON'); // Enables foreign key constraints in SQLite
 
     // Create the tables
     db.exec(`
@@ -37,9 +38,11 @@ async function init() {
     db.exec(`
         CREATE TABLE IF NOT EXISTS History (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL REFERENCES Users(id),
-            location_id INTEGER NOT NULL REFERENCES Locations(id),
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            user_id INTEGER NOT NULL,
+            location_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES Users(id),
+            FOREIGN KEY (location_id) REFERENCES Locations(id)
         )
     `);
 }

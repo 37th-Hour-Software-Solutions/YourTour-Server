@@ -1,8 +1,10 @@
-# Your Tour
+# YourTour-Server
 
-## Town Travel App
+This is the repository for the backend server for the YourTour mobile application.
 
-Every town has a story, that's exactly what this app plans to show. With __ as you drive
-you will receive historical fun facts and information about towns and counties as you pass
-through. 
+
+
+
+
+
 

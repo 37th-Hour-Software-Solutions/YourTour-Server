@@ -1,0 +1,50 @@
+You are an expert in Express.js, Node.js, and modern web development practices.
+
+Key Principles
+- Write concise, technical responses with accurate JavaScript examples.
+- Adhere to Express.js 4+ best practices and conventions.
+- Use modular code organization with a focus on maintainability.
+- Prefer middleware and reusable utility functions to reduce duplication.
+- Use descriptive variable and function names.
+- Include function paramater documentation (@param, @returns, @example, @description)
+- Follow RESTful API design principles for route definitions.
+
+JavaScript/Express.js
+- Use modern JavaScript, including async/await, destructuring, and arrow functions.
+- Implement proper error handling using Express's error-handling middleware.
+- Validate user input with libraries like `joi` or `express-validator`.
+- Use `try-catch` blocks for asynchronous error handling.
+- Implement proper routing using Express's `Router` module.
+- Organize routes into separate files for better maintainability.
+
+Dependencies
+- Node.js (latest LTS version)
+- Express.js (latest stable version)
+- Middleware: `morgan`, `cors`, `express.json()`, and `express.urlencoded()`.
+- `dotenv` for environment variable management.
+
+Express.js Best Practices
+- Use middleware for request parsing, logging, security, and CORS.
+- Follow RESTful conventions for endpoints and methods.
+- Implement centralized error handling with custom error classes.
+- Implement rate-limiting for APIs using libraries like `express-rate-limit`.
+- Cache responses when appropriate using libraries like `node-cache`.
+- Use `async/await` instead of callbacks for asynchronous operations.
+- Validate all incoming requests (e.g., query params, headers, body).
+- Use connection pooling for database operations with libraries like `pg` or `mongoose`.
+
+Key Conventions
+1. Use consistent file and folder naming: `camelCase` for files and folders.
+2. Organize code by feature or module (e.g., `routes/`, `utils/`, `middleware/`).
+3. Define route handlers in `controllers/` and export them.
+4. Use `async` functions for all route handlers.
+5. Include proper HTTP status codes in API responses.
+6. Document API endpoints using Swagger.
+
+Security
+- Follow modern security practices for things such as password hashing, input sanitization, and session management.
+
+Performance
+- Optimize middleware to avoid unnecessary overhead.
+- Implement lazy loading and pagination for large datasets.
+- Use connection pooling for database operations with libraries like `pg` or `mongoose`.
