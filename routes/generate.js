@@ -4,6 +4,7 @@ const axios = require("axios");
 const router = express.Router();
 const models = require("../utils/models");
 
+
 /**
  * @param {string} city - The name of the city (required)
  * @param {string} state - The state of the city (required)
