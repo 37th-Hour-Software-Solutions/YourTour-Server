@@ -1,15 +1,57 @@
 You are an expert in Express.js, Node.js, and modern web development practices.
 
-Key Principles
-- Write concise, technical responses with accurate JavaScript examples.
+Generate code, corrections, and refactorings that comply with the basic principles and nomenclature of the project.
+
+## Express General Guidelines
+
+### Basic Principles
+
+- Use English for all code and documentation.
 - Adhere to Express.js 4+ best practices and conventions.
+- Follow RESTful API design principles for route definitions.
 - Use modular code organization with a focus on maintainability.
 - Prefer middleware and reusable utility functions to reduce duplication.
-- Use descriptive variable and function names.
-- Include function paramater documentation (@param, @returns, @example, @description)
-- Follow RESTful API design principles for route definitions.
 
-JavaScript/Express.js
+## Nomenclature
+
+- Use PascalCase for all class names.
+- Use camelCase for all variable and function names.
+- Use underscore_case for all file names and directory names.
+- Use UPPERCASE for all environment variables and global constants.
+- Avoid magic numbers and define constants.
+- Start each function with a verb. Example: `getLocations`, `createLocation`, `updateLocation`, `deleteLocation`.
+- Use complete words instead of abbreviations and correct spelling.
+- Except for standard abbreviations like API, URL, etc.
+- Except for well-known abbreviations:
+    - i, j for loops
+    - err for errors
+    - ctx for contexts
+    - req, res, next for middleware function parameters
+
+### Functions
+
+- Use async/await for all asynchronous operations.
+- Use try/catch for all asynchronous error handling.
+- Use Promise.all for all parallel operations.
+- Use Promise.race for all race operations.
+- Use Promise.allSettled for all allSettled operations.
+- Use Promise.any for all any operations.
+- If it returns a boolean, use `is`, `has`, `can`, etc.
+- If it returns nothing, use `execute`, `run`, `save`, etc.
+- If it returns a value, use `get`, `find`, `fetch`, etc.
+- Avoid nesting blocks by:
+    - Early checks and returns
+    - Extraction to utility functions
+- Use `const` for all variables that do not change.
+- Use `let` for all variables that change.
+- Use `var` for all variables that are used in a loop.
+- Use high-order functions (map, filter, reduce, etc.) to avoid function nesting.
+- Include function paramater documentation (@param, @returns, @example, @description)
+
+## Specific to Express.js
+
+### Basic Principles
+
 - Use modern JavaScript, including async/await, destructuring, and arrow functions.
 - Implement proper error handling using Express's error-handling middleware.
 - Validate user input with libraries like `joi` or `express-validator`.
@@ -17,13 +59,8 @@ JavaScript/Express.js
 - Implement proper routing using Express's `Router` module.
 - Organize routes into separate files for better maintainability.
 
-Dependencies
-- Node.js (latest LTS version)
-- Express.js (latest stable version)
-- Middleware: `morgan`, `cors`, `express.json()`, and `express.urlencoded()`.
-- `dotenv` for environment variable management.
+### Best Practices
 
-Express.js Best Practices
 - Use middleware for request parsing, logging, security, and CORS.
 - Follow RESTful conventions for endpoints and methods.
 - Implement centralized error handling with custom error classes.
@@ -32,19 +69,14 @@ Express.js Best Practices
 - Use `async/await` instead of callbacks for asynchronous operations.
 - Validate all incoming requests (e.g., query params, headers, body).
 - Use connection pooling for database operations with libraries like `pg` or `mongoose`.
+- Document API endpoints using Swagger.
 
-Key Conventions
-1. Use consistent file and folder naming: `camelCase` for files and folders.
-2. Organize code by feature or module (e.g., `routes/`, `utils/`, `middleware/`).
-3. Define route handlers in `controllers/` and export them.
-4. Use `async` functions for all route handlers.
-5. Include proper HTTP status codes in API responses.
-6. Document API endpoints using Swagger.
+### Security
 
-Security
 - Follow modern security practices for things such as password hashing, input sanitization, and session management.
 
-Performance
+### Performance
+
 - Optimize middleware to avoid unnecessary overhead.
 - Implement lazy loading and pagination for large datasets.
 - Use connection pooling for database operations with libraries like `pg` or `mongoose`.
