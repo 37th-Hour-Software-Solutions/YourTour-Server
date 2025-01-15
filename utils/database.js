@@ -1,9 +1,5 @@
 const db = require('better-sqlite3')('app.db');
 
-// Users (id[Primary], username, name, email, hashedPassword, phone?, created_at)
-// Locations (id[Primary], city, state, facts[JSON type], is_gem, created_at)
-// History (id[Primary], user_id[Foreign], location_id[Foreign], created_at)
-
 /**
  * @returns {Promise<void>}
  */

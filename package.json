@@ -20,6 +20,7 @@
     "express-session": "^1.18.1",
     "forwarded": "^0.2.0",
     "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
     "memorystore": "^1.6.7",
     "morgan": "^1.10.0",
     "node-gyp": "^11.0.0",

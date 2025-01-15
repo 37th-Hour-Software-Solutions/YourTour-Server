@@ -9,7 +9,7 @@ const process = require('process');
 const cors = require('cors');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
-const db = require('./utils/db');
+const database = require('./utils/database');
 const { swaggerDocs } = require('./swagger');
 
 // Load environment variables
@@ -19,7 +19,7 @@ dotenv.config();
 
 async function initialize() {
   try {
-    await db.init();
+    await database.init();
   } catch (error) {
     // If there is an error initializing the services, log the error and exit the process
     console.error(error);

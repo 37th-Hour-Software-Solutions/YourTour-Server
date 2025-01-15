@@ -1,4 +1,4 @@
-var db_pool = require("./db.js");
+var db_pool = require("./database.js");
 
 // Clean inputs
 function clean(str) {
