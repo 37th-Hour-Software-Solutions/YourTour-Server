@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
-var db_pool = require("./db.js");
+const crypto = require("crypto");
 var { clean, getUserIDBySessionToken } = require("../utils/helper.js");
 
 // Call for user login
