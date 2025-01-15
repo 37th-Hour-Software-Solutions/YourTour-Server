@@ -35,7 +35,6 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd ~/hackmt
-            rm -rf node_modules package-lock.json
-            npm install
-            pm2 reload index.js --name "node-app"
+            npm install --verbose
+            pm2 restart index.js --name "yourtour"
 

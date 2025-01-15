@@ -1,9 +1,10 @@
 {
-  "name": "tourguide",
+  "name": "yourtour",
   "version": "1.0.0",
-  "description": "Every town has a story, that's exactly what this app plans to show. With __ as you drive\r you will receive historical fun facts and information about towns and counties as you pass\r through.",
+  "description": "YourTour is a travel guide app that provides historical fun facts and information about towns and counties as you pass through.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -17,6 +18,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "forwarded": "^0.2.0",
     "http-errors": "^2.0.0",
     "memorystore": "^1.6.7",
     "morgan": "^1.10.0",
