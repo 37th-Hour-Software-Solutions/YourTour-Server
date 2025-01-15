@@ -1,3 +1,6 @@
 /node_modules
 package-lock.json
 .env
+app.db-shm
+app.db-wal
+app.db-journal

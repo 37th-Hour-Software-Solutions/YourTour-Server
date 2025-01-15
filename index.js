@@ -9,6 +9,7 @@ const process = require('process');
 const cors = require('cors');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
+const db = require('./utils/db');
 const { swaggerDocs } = require('./swagger');
 
 // Load environment variables
@@ -16,15 +17,15 @@ dotenv.config();
 
 // Helpers
 
-// async function initialize() {
-//   try {
-//     await database.init();
-//   } catch (error) {
-//     // If there is an error initializing the services, log the error and exit the process
-//     console.error(error);
-//     process.exit(1);
-//   }
-// }
+async function initialize() {
+  try {
+    await db.init();
+  } catch (error) {
+    // If there is an error initializing the services, log the error and exit the process
+    console.error(error);
+    process.exit(1);
+  }
+}
 
 const app = express();
 
@@ -33,7 +34,7 @@ const authRouter = require('./routes/auth')
 const generateRouter = require('./routes/generate')
 
 // Initialize the database
-// initialize();
+initialize();
 
 // Enable CORS
 app.use(cors());
