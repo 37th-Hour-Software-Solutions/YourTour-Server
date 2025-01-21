@@ -4,3 +4,4 @@ package-lock.json
 app.db-shm
 app.db-wal
 app.db-journal
+app.db

@@ -1,4 +1,4 @@
-const { generateToken, verifyToken } = require('../utils/jwt');
+const { verifyToken } = require('../utils/jwt');
 
 /**
  * Express middleware to authenticate requests using JWT
@@ -8,7 +8,7 @@ const { generateToken, verifyToken } = require('../utils/jwt');
  */
 const authenticateToken = async (req, res, next) => {
     try {
-        const token = req.cookies.token;
+        const token = req.headers.authorization;
         
         if (!token) {
             return res.status(401).json({

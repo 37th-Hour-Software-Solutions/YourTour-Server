@@ -1,10 +1,60 @@
 # API Documentation
 
-All endpoints are located in the `routes` directory. Naming convention is `GET /example/` so the file is `example.js`. All endpoints should have proper Swagger documentation. 
+All endpoints are located in the `routes` directory. Naming convention is `GET /example/` so the file is `example.js`. All endpoints should have proper Swagger documentation, including security headers, body parameters, response formats, etc. An example of a Swagger documentation block is provided below:
+
+```
+/**
+ * @swagger
+ * /generate/{city}/{state}:
+ *   get:
+ *     summary: Generate or retrieve facts about a city
+ *     description: Returns facts about a specified city, either from cache or newly generated
+ *     security:
+ *       - bearerAuth: []
+ *     tags: [Generate]
+ *     parameters:
+ *       - in: path
+ *         name: city
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the city
+ *       - in: path
+ *         name: state
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The state of the city
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Bearer token for authentication
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved city facts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error: 
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       400:
+ *         description: Invalid request parameters
+ *       500:
+ *         description: Server error
+ */
+```
 
 ## Design
 
-The API should follow RESTful principles and expect and return consistent formats. For example, `GET` requests should expect query parameters and `POST` requests should expect a JSON body. All requests should be authenticated with a JWT token cookie ("token"). All responses should be in JSON format as follows:
+The API should follow RESTful principles and expect and return consistent formats. For example, `GET` requests should expect query parameters and `POST` requests should expect a JSON body. All requests should be authenticated with a JWT token in the `Authorization` header using the `AuthenticateToken` middleware from `middleware/auth.js`. All responses should be in JSON format as follows:
 
 ```json
 {
@@ -13,13 +63,39 @@ The API should follow RESTful principles and expect and return consistent format
 }
 ```
 
-If an error occurs, the `error` field should be set to `true` and the `data` field should be the error message. Error message verbosity should depend on the `NODE_ENV` environment variable. In development, the error message should be verbose and include the stack trace. In production, the error message should be "Internal Server Error".
+If an error occurs, the `error` field should be set to `true` and the `data` field should contain a `message` field the error message. Error message verbosity should depend on the `NODE_ENV` environment variable. In development, the error message should be verbose and include the stack trace. In production, the error message should be "Internal Server Error".
+
+## Field Validation
+
+All fields should be validated using `express-validator`. Specifically, schemas should be created in the `schemas` directory and routes should use the `validateFields` middleware from `middleware/validate.js`. An example of a schema is provided below:
+
+```js
+const loginSchema = {
+    email: {
+        isEmail: true,
+		optional: false,
+    },
+    password: {
+		optional: false,
+    }
+};
+
+module.exports = { loginSchema };
+```
+
+Then, the route should use the `validateFields` middleware to validate the request body:
+
+```js
+router.post('/login', validateFields(loginSchema), async (req, res) => {
+    // Handle request
+});
+```
 
 ## Endpoints
 
 ### /auth (auth.js)
 
-- `POST /auth/register`
+- `POST /auth/register` (No authentication required)
 ```json
 {
     "email": "test@test.com",
@@ -36,7 +112,7 @@ If an error occurs, the `error` field should be set to `true` and the `data` fie
 }
 ```
 
-- `POST /auth/login`
+- `POST /auth/login` (No authentication required)
 ```json
 {
     "email": "test@test.com",
@@ -53,7 +129,7 @@ If an error occurs, the `error` field should be set to `true` and the `data` fie
 
 ### /navigation (navigation.js)
 
-- `GET /navigation/geocode/:query`
+- `GET /navigation/geocode/:query` (Authenticated)
 
 ```
 Query: "100 Main St, Nashville, TN"
@@ -67,7 +143,7 @@ Query: "100 Main St, Nashville, TN"
 }
 ```
 
-- `GET /navigation/directions/:origin/:destination`
+- `GET /navigation/directions/:origin/:destination` (Authenticated)
 
 ```
 Origin: "36.1627,-86.7816"
@@ -85,7 +161,7 @@ Destination: "36.1627,-86.7816"
 
 ### /generate (generate.js)
 
-- `GET /generate/:city/:state`
+- `GET /generate/:city/:state` (Authenticated)
 
 ```
 City: "Nashville"

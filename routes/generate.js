@@ -2,7 +2,7 @@ const express = require('express');
 const cheerio = require('cheerio');
 const axios = require('axios');
 const router = express.Router();
-const { client, SUMMARY_PROMPT } = require('../utils/models');
+const models = require('../utils/models');
 const { db } = require('../utils/database');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -147,7 +147,7 @@ const GEMS = [
  * @returns {Promise<string>} The cleaned Wikipedia text
  * @throws {Error} If the page cannot be fetched or parsed
  */
-async function getTextFromWikipedia(city, state) {
+const getTextFromWikipedia = async (city, state) => {
     try {
         const cityClean = encodeURIComponent(city.replace(/ /g, '_'));
         const stateClean = encodeURIComponent(state.replace(/ /g, '_'));
@@ -168,7 +168,7 @@ async function getTextFromWikipedia(city, state) {
     } catch (error) {
         throw new Error(error);
     }
-}
+};
 
 /**
  * Summarizes text using AI model
@@ -178,12 +178,12 @@ async function getTextFromWikipedia(city, state) {
  * @returns {Promise<Object>} The summarized content
  * @throws {Error} If the summarization fails
  */
-async function summarizeText(text, city, state) {
+const summarizeText = async (text, city, state) => {
     try {
-        const response = await client.chat.completions.create({
+        const response = await models.client.chat.completions.create({
             model: "gpt-4o",
             messages: [
-                { role: "system", content: SUMMARY_PROMPT },
+                { role: "system", content: models.SUMMARY_PROMPT },
                 { role: "user", content: `Here is the Wikipedia article for ${city}, ${state}: ${text}` }
             ],
             response_format: { type: "json_object" }
@@ -193,16 +193,16 @@ async function summarizeText(text, city, state) {
     } catch (error) {
         throw new Error(error);
     }
-}
+};
 
 /**
  * Generates or retrieves facts about a city
  * @param {string} city - The name of the city
  * @param {string} state - The state of the city
- * @returns {Object} City facts and metadata
+ * @returns {Promise<Object>} City facts and metadata
  * @throws {Error} If database operations fail
  */
-async function generateCityFacts(city, state) {
+const generateCityFacts = async (city, state) => {
     try {
         // Prepare statements
         const selectStmt = db.prepare(
@@ -241,7 +241,7 @@ async function generateCityFacts(city, state) {
     } catch (error) {
         throw new Error(error);
     }
-}
+};
 
 /**
  * @swagger
@@ -249,6 +249,8 @@ async function generateCityFacts(city, state) {
  *   get:
  *     summary: Generate or retrieve facts about a city
  *     description: Returns facts about a specified city, either from cache or newly generated
+ *     security:
+ *       - bearerAuth: []
  *     tags: [Generate]
  *     parameters:
  *       - in: path
@@ -263,6 +265,12 @@ async function generateCityFacts(city, state) {
  *         schema:
  *           type: string
  *         description: The state of the city
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Bearer token for authentication
  *     responses:
  *       200:
  *         description: Successfully retrieved city facts
@@ -275,18 +283,22 @@ async function generateCityFacts(city, state) {
  *                   type: boolean
  *                 data:
  *                   type: object
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *       400:
  *         description: Invalid request parameters
  *       500:
  *         description: Server error
  */
-router.get('/:city/:state', authenticateToken, async (req, res) => {
+router.get('/:city/:state', async (req, res) => {
     const { city, state } = req.params;
 
     if (!city || !state) {
         return res.status(400).json({
             error: true,
-            data: 'Missing required fields'
+            data: {
+                message: 'Missing required fields'
+            }
         });
     }
 
@@ -300,9 +312,11 @@ router.get('/:city/:state', authenticateToken, async (req, res) => {
         console.error('Generate route error:', error);
         res.status(500).json({
             error: true,
-            data: process.env.NODE_ENV === 'development' ? 
-                error.stack : 
-                'Internal server error'
+            data: {
+                message: process.env.NODE_ENV === 'development' ? 
+                    error.stack : 
+                    'Internal server error'
+            }
         });
     }
 });
