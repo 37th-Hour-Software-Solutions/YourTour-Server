@@ -218,6 +218,7 @@ const generateCityFacts = async (city, state) => {
 
         if (existingLocation) {
             return {
+                id: existingLocation.id,
                 city: existingLocation.city,
                 state: existingLocation.state,
                 facts: JSON.parse(existingLocation.facts),
@@ -231,9 +232,10 @@ const generateCityFacts = async (city, state) => {
         const isGem = GEMS.some(gem => gem.city === city && gem.state === state);
 
         // Store in database
-        insertStmt.run(city, state, JSON.stringify(summary), isGem ? 1 : 0);
+        const result = insertStmt.run(city, state, JSON.stringify(summary), isGem ? 1 : 0);
 
         return {
+            id: result.lastID,
             city,
             state,
             facts: summary,
@@ -305,6 +307,15 @@ router.get('/:city/:state', async (req, res) => {
 
     try {
         const facts = await generateCityFacts(city, state);
+        
+        // Add city and state to user's history
+        const userId = req.user.id;
+        const locationId = facts.id;
+        const insertStmt = db.prepare(
+            'INSERT INTO History (user_id, location_id) VALUES (?, ?)'
+        );
+        insertStmt.run(userId, locationId);
+
         res.status(200).json({
             error: false,
             data: facts
