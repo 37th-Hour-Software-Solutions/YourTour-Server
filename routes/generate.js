@@ -11,6 +11,7 @@ const GEMS = [
     {city: 'Manchester', state: 'Tennessee', description: 'One of the founder\'s hometowns!'},
     {city: 'White House', state: 'Tennessee', description: 'One of the founder\'s hometowns!'},
     {city: 'Bell Buckle', state: 'Tennessee', description: 'One of the founder\'s hometowns!'},
+    {city: 'Farragut', state: 'Tennessee', description: 'One of the founder\'s hometowns!'},
     {city: 'Lafayette', state: 'Tennessee', description: 'One of the founder\'s hometowns!'},
     {city: 'New Hope', state: 'Pennsylvania', description: 'An artistic riverside town known for its galleries, theaters, and LGBTQ+ friendly atmosphere'},
     {city: 'Mackinac Island', state: 'Michigan', description: 'A car-free island famous for its Victorian architecture, fudge shops, and horse-drawn carriages'},
