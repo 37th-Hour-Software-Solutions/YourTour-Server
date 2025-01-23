@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 // Load JWT secret from environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'oh_boy_if_we_made_it_here_then_something_terrible_happened';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'oh_boy_if_we_made_it_here_then_something_terrible_happened';
 
 /**
  * Generates a JWT token for a user
@@ -10,7 +10,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
  * @returns {string} JWT token
  * @throws {Error} If user object is invalid
  */
-const generateToken = (user) => {
+const generateAccessToken = (user) => {
     if (!user || !user.id || !user.email) {
         throw new Error('Invalid user object provided');
     }
@@ -22,7 +22,27 @@ const generateToken = (user) => {
     };
 
     return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: JWT_EXPIRES_IN
+        expiresIn: "1h"
+    });
+};
+
+/**
+ * Generates a refresh token for a user
+ * @param {Object} user - User object containing id and email
+ * @returns {string} Refresh token
+ * @throws {Error} If user object is invalid
+ */
+const generateRefreshToken = (user) => {
+    if (!user || !user.id || !user.email) {
+        throw new Error('Invalid user object provided');
+    }
+
+    const payload = {
+        id: user.id
+    };
+
+    return jwt.sign(payload, JWT_SECRET, {
+        expiresIn: "365d"
     });
 };
 
@@ -32,7 +52,7 @@ const generateToken = (user) => {
  * @returns {Object} Decoded token payload
  * @throws {Error} If token is invalid or expired
  */
-const verifyToken = (token) => {
+const verifyAccessToken = (token) => {
     if (!token) {
         throw new Error('No token provided');
     }
@@ -44,7 +64,27 @@ const verifyToken = (token) => {
     }
 };
 
+/**
+ * Verifies a refresh JWT token and returns the decoded payload
+ * @param {string} token - JWT token to verify
+ * @returns {Object} Decoded token payload
+ * @throws {Error} If token is invalid or expired
+ */
+const verifyRefreshToken = (token) => {
+    if (!token) {
+        throw new Error('No token provided');
+    }
+
+    try {
+        return jwt.verify(token, JWT_REFRESH_SECRET);
+    } catch (error) {
+        throw new Error('Invalid or expired token');
+    }
+};
+
 module.exports = {
-    generateToken,
-    verifyToken
+    generateAccessToken,
+    generateRefreshToken,
+    verifyAccessToken,
+    verifyRefreshToken
 };

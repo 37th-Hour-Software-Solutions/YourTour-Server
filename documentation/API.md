@@ -54,7 +54,7 @@ All endpoints are located in the `routes` directory. Naming convention is `GET /
 
 ## Design
 
-The API should follow RESTful principles and expect and return consistent formats. For example, `GET` requests should expect query parameters and `POST` requests should expect a JSON body. All requests should be authenticated with a JWT token in the `Authorization` header using the `AuthenticateToken` middleware from `middleware/auth.js`. All responses should be in JSON format as follows:
+The API should follow RESTful principles and expect and return consistent formats. For example, `GET` requests should expect query parameters and `POST` requests should expect a JSON body. All requests should be authenticated with a JWT access token in the `Authorization` header using the `AuthenticateAccessToken` middleware from `middleware/auth.js`. All responses should be in JSON format as follows:
 
 ```json
 {
@@ -107,7 +107,7 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
 {
     "error": false,
     "data": {
-        "token": "1234567890"
+        "message": "User registered successfully"   
     }
 }
 ```
@@ -122,7 +122,22 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
 {
     "error": false,
     "data": {
-        "token": "1234567890"
+        "accessToken": "1234567890",
+        "refreshToken": "1234567890"
+    }
+}
+```
+
+- `POST /auth/refresh` (No authentication required)
+```json
+{
+    "refreshToken": "1234567890"
+}
+
+{
+    "error": false,
+    "data": {
+        "accessToken": "1234567890"
     }
 }
 ```

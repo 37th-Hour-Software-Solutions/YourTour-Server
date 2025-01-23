@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-const { generateToken } = require("../utils/jwt.js");
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require("../utils/jwt.js");
 const { db } = require("../utils/database.js");
 const { validateFields } = require("../middleware/validate.js");
 const { registerSchema } = require("../schemas/register.js");
 const { loginSchema } = require("../schemas/login.js");
-
+const { refreshSchema } = require("../schemas/refresh.js");
 /**
  * @swagger
  * /auth/register:
@@ -36,6 +36,22 @@ const { loginSchema } = require("../schemas/login.js");
  *                 type: string
  *               phone:
  *                 type: string
+ *     responses:
+ *       200:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: Invalid request parameters
+ *       500:
+ *         description: Server error
  */
 router.post('/register', validateFields(registerSchema), async (req, res) => {
     const { email, username, password, name, phone } = req.body;
@@ -73,19 +89,14 @@ router.post('/register', validateFields(registerSchema), async (req, res) => {
         const insertUserStmt = db.prepare(
             'INSERT INTO Users (username, name, email, hashedPassword, phone) VALUES (?, ?, ?, ?, ?)'
         );
-        const result = insertUserStmt.run(username, name, email, hashedPassword, phone);
 
-        // Generate token
-        const user = {
-            id: result.lastInsertRowid,
-            email,
-            name
-        };
-        const token = generateToken(user);
+        insertUserStmt.run(username, name, email, hashedPassword, phone);
 
         return res.status(201).json({
             error: false,
-            data: { token }
+            data: { 
+                message: 'User registered successfully'
+             }
         });
     } catch (error) {
         console.error('Register error:', error);
@@ -120,6 +131,22 @@ router.post('/register', validateFields(registerSchema), async (req, res) => {
  *                 type: string
  *               password:
  *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       400:
+ *         description: Invalid request parameters
+ *       500:
+ *         description: Server error
  */
 router.post('/login', validateFields(loginSchema), async (req, res) => {
     const { email, password } = req.body;
@@ -152,15 +179,19 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
         }
 
         // Generate token
-        const token = generateToken({
+        const accessToken = generateAccessToken({
             id: user.id,
             email: user.email,
             name: user.name
         });
 
+        const refreshToken = generateRefreshToken({
+            id: user.id
+        });
+
         return res.json({
             error: false,
-            data: { token }
+            data: { accessToken, refreshToken }
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -171,6 +202,60 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
 					error.stack : 
 					'Internal server error'
 			}
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /auth/refresh:
+ *   post:
+ *     summary: Refresh access token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Access token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *       400:
+ *         description: Invalid request parameters
+ *       500:
+ *         description: Server error
+ */
+router.post('/refresh', validateFields(refreshSchema), async (req, res) => {
+    const { refreshToken } = req.body;
+
+    try {
+        const decoded = verifyRefreshToken(refreshToken);
+
+        const accessToken = generateAccessToken(decoded);
+
+        return res.json({
+            error: false,
+            data: { accessToken }
+        });
+
+    } catch (error) {
+        console.error('Refresh error:', error);
+        return res.status(500).json({
+            error: true,
+            data: { message: 'Internal server error' }
         });
     }
 });
