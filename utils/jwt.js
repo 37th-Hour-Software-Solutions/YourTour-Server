@@ -33,7 +33,7 @@ const generateAccessToken = (user) => {
  * @throws {Error} If user object is invalid
  */
 const generateRefreshToken = (user) => {
-    if (!user || !user.id || !user.email) {
+    if (!user || !user.id) {
         throw new Error('Invalid user object provided');
     }
 

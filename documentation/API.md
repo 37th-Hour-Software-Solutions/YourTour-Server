@@ -99,9 +99,10 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
 ```json
 {
     "email": "test@test.com",
+    "username": "test",
     "password": "password",
     "name": "John Doe",
-    "phone": "1234567890"
+    "phone": "+11234567890"
 }
 
 {
