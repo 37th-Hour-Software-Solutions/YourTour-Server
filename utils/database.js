@@ -15,8 +15,24 @@ async function init() {
             name TEXT NOT NULL,
             email TEXT NOT NULL,
             hashedPassword TEXT NOT NULL,
+            homestate TEXT NOT NULL,
             phone TEXT NOT NULL,
+            interests TEXT NOT NULL,
+            gemsFound INTEGER DEFAULT 0,
+            badges TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS Gems (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            townName TEXT NOT NULL,
+            description TEXT NOT NULL,
+        )
+
+        INSERT INTO Gems VALUES (
+            
         )
     `);
 
