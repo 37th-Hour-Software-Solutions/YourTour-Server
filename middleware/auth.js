@@ -1,4 +1,4 @@
-const { verifyToken } = require('../utils/jwt');
+const { verifyAccessToken } = require('../utils/jwt');
 
 /**
  * Express middleware to authenticate requests using JWT
@@ -6,18 +6,18 @@ const { verifyToken } = require('../utils/jwt');
  * @param {Object} res - Express response object
  * @param {Function} next - Express next function
  */
-const authenticateToken = async (req, res, next) => {
+const authenticateAccessToken = async (req, res, next) => {
     try {
-        const token = req.headers.authorization;
+        const accessToken = req.headers.authorization;
         
-        if (!token) {
+        if (!accessToken) {
             return res.status(401).json({
                 error: true,
                 data: 'Authentication required'
             });
         }
 
-        const decoded = verifyToken(token);
+        const decoded = verifyAccessToken(accessToken);
         req.user = decoded;
         next();
     } catch (error) {
@@ -31,5 +31,5 @@ const authenticateToken = async (req, res, next) => {
 };
 
 module.exports = {
-    authenticateToken
+    authenticateAccessToken
 };

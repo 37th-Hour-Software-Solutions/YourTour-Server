@@ -4,7 +4,7 @@ const axios = require('axios');
 const router = express.Router();
 const models = require('../utils/models');
 const { db } = require('../utils/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateAccessToken } = require('../middleware/auth');
 
 const GEMS = [
     {city: 'Liberty', state: 'Tennessee', description: 'One of the founder\'s hometowns!'},
