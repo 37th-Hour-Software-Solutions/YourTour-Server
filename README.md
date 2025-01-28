@@ -1,13 +1,12 @@
 ![YOURTOUR2-copy750](https://github.com/user-attachments/assets/b6492b55-dddd-472e-b40e-82565fa1632d)
 
-## Installation
+# Installation
 
 ```bash
 git clone https://github.com/bridgeshayes/YourTour-Server.git
 cd /YourTour-Server
 npm install
 ```
-
 
 ### Run Locally
 
@@ -19,7 +18,6 @@ node index.js
 
 ## Github Actions
 .github/workflows/deploy.yaml is setup to automatically pull the latest code into the EC2 instance.
-
 
 ## PM2 
 The EC2 instance has PM2 installed to run the server as a background process and ensure automatic 
@@ -58,4 +56,3 @@ Stop all processes
 ```bash
 pm2 stop all
 ```
-
