@@ -24,17 +24,6 @@ async function init() {
         )
     `);
 
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS Gems (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            townName TEXT NOT NULL,
-            description TEXT NOT NULL,
-        )
-
-        INSERT INTO Gems VALUES (
-            
-        )
-    `);
 
     db.exec(`
         CREATE TABLE IF NOT EXISTS Locations (
