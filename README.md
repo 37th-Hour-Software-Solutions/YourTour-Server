@@ -30,6 +30,11 @@ Start the backend as a processes
 pm2 start index.js --name "yourtour"
 ```
 
+Restart process
+```bash
+pm2 restart [process_id]
+```
+
 List out all running processes 
 ```bash
 pm2 list
