@@ -67,3 +67,10 @@ Stop all processes
 ```bash
 pm2 stop all
 ```
+
+## Contact
+
+For any questions, issues, or feedback, feel free to reach out to:
+
+- **Name**: Garrett Hayes  
+- **GitHub**: [Your GitHub Profile](https://github.com/bridgeshayes)
