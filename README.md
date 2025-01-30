@@ -1,5 +1,8 @@
 ![YOURTOUR2-copy750](https://github.com/user-attachments/assets/b6492b55-dddd-472e-b40e-82565fa1632d)
 
+## API Docs
+[Swagger Docs](http://ec2-18-222-210-86.us-east-2.compute.amazonaws.com:3000/api-docs)
+
 ## Flutter Repo
 Link to see Flutter repo: [YourTour-Frontend](https://github.com/bridgeshayes/YourTour-Frontend.git)
 
