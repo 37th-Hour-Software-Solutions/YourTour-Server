@@ -38,6 +38,39 @@ const getCoordinatesFromAddress = async (address) => {
   }
 };
 
+const getAddressFromCoordinates = async (startLat, startLon, endLat, endLon) => {
+  try{
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${startLat}&lon=${startLon}`; 
+    const nominatimUrl2 = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${endLat}&lon=${endLon}`;
+
+    const responseStart = await axios.get(nominatimUrl, {
+      headers: {
+        "User-Agent": "YourTour/1.0 (me@landon.pw)",
+      }
+    });
+    const responseEnd = await axios.get(nominatimUrl2, {
+      headers: {
+        "User-Agent": "YourTour/1.0 (me@landon.pw)",
+      }
+    });
+
+    if (responseStart.data.length === 0) {
+      throw new Error(`Geocoding failed: No results found`);
+    }
+
+    if (responseEnd.data.length === 0) {
+      throw new Error(`Geocoding failed: No results found`);
+    }
+
+    return {
+      startingTown: responseStart.village + ' ' + responseStart.state,
+      endingTown: responseEnd.village + ' ' + responseEnd.state,
+    };
+  }catch(error){
+    throw new Error(error);
+  }
+}
+
 /**
  * @swagger
  * /navigation/geocode/{address}:
@@ -178,11 +211,20 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
   }
 
   try {
+    const [startLat, startLon] = starting.split(",");
+    const [endLat, endLon] = ending.split(",");
+
+    const addresses = getAddressFromCoordinates(startLat, startLon, endLat, endLon);
+
+    startTown = addresses.startingTown;
+    endTown = addresses.endingTown;
+
+
     // Insert trip into the Trips table and get the last inserted tripId
     const insertTripStmt = db.prepare(
-      "INSERT INTO Trips (user_id) VALUES (?)"
+      "INSERT INTO Trips (user_id, startingTown, endingTown) VALUES (?,?,?)"
     );
-    const result = insertTripStmt.run(req.user.id);
+    const result = insertTripStmt.run(req.user.id, startTown, endTown);
     const tripId = result.lastInsertRowid;
 
     // Fetch the route data

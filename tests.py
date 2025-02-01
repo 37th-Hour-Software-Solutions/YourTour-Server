@@ -66,6 +66,13 @@ def test_turnbyturn(accessToken, startCords, endCords):
     })
     print(response.json())
     return response.json()['data']['tripId']
+
+def test_history(accessToken):
+    response = requests.get(f'http://localhost:3000/history', headers= {
+        'Authorization': f'{accessToken}'
+    })
+    print(response.json())
+    return response.json()
 email = generate_random_email()
 username = generate_random_username()
 password = generate_random_password()
@@ -81,6 +88,8 @@ ending_lat, ending_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 1
 
 # Test the turn by turn endpoint
 tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
+
+test_history(accessToken)
 
 # Test the generate endpoint
 test_generate(accessToken, tripId, 'Syracuse', 'NY')
