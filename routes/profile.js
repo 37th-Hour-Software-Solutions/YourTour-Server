@@ -12,7 +12,7 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  * /profile:
  *   get:
  *     summary: Get user profile
- *     tags: [Auth]
+ *     tags: [Users]
  *     responses:
  *       200:
  *         description: User profile retrieved successfully
