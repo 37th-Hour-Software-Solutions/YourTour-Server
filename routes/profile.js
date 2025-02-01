@@ -50,7 +50,7 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  *         description: Server error
  */
 router.get('/', authenticateAccessToken, async (req, res) => {
-  const getUserStmt = db.prepare('SELECT id, username, name, email, phone, homestate, gemsFound FROM Users WHERE id = ?');
+  const getUserStmt = db.prepare('SELECT id, username, email, phone, homestate, gemsFound FROM Users WHERE id = ?');
   
   try {
       const user = getUserStmt.get(req.user.id);
@@ -74,7 +74,7 @@ router.get('/', authenticateAccessToken, async (req, res) => {
  * /profile/update:
  *   post:
  *     summary: Update user details
- *     description: Allows a user to update their email, username, password, name, phone number, homestate, and interests.
+ *     description: Allows a user to update their email, username, password, phone number, homestate, and interests.
  *     security:
  *       - bearerAuth: []
  *     tags: [Users]
@@ -106,9 +106,6 @@ router.get('/', authenticateAccessToken, async (req, res) => {
  *                 type: string
  *                 format: password
  *                 example: "new_PASSWORd123$$"
- *               name:
- *                 type: string
- *                 example: "John Doe"
  *               phone:
  *                 type: string
  *                 example: "1234567890"
@@ -147,7 +144,7 @@ router.get('/', authenticateAccessToken, async (req, res) => {
 */
 
 router.post('/update', validateFields(profileSchema), authenticateAccessToken, async (req, res) => {
-  const {email, username, oldPassword, password, name, phone, homestate, interests } = req.body;
+  const {email, username, oldPassword, password, phone, homestate, interests } = req.body;
 
   try {
     // Prepare dynamic SQL query and parameters based on provided fields
@@ -205,12 +202,6 @@ router.post('/update', validateFields(profileSchema), authenticateAccessToken, a
       const hashedPassword = await bcrypt.hash(password, 10);
       sqlSetParts.push("hashedPassword = ?");
       sqlParams.push(hashedPassword);
-    }
-
-    // Update the user's name
-    if (name) {
-      sqlSetParts.push("name = ?");
-      sqlParams.push(name);
     }
 
     // Update the user's phone number

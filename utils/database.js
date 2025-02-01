@@ -12,7 +12,6 @@ async function init() {
     CREATE TABLE IF NOT EXISTS Users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL,
-      name TEXT NOT NULL,
       email TEXT NOT NULL,
       hashedPassword TEXT NOT NULL,
       phone TEXT NOT NULL,
