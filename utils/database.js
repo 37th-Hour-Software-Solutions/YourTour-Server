@@ -116,6 +116,17 @@ async function init() {
       ('Food', 'Learn about the food of the United States'),
       ('Sports', 'Learn about the sports of the United States')
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS UserInterests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      interest_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES Users(id),
+      FOREIGN KEY (interest_id) REFERENCES Interests(id)
+    )
+  `);
 }
 
 
