@@ -53,10 +53,17 @@ def test_profile(accessToken):
     })
     print(response.json())
 
+def test_geocode(accessToken, address):
+    response = requests.get(f'http://localhost:3000/navigation/geocode/{address}', headers={
+        'Authorization': f'{accessToken}'
+    })
+    print(response.json())
+
 email = generate_random_email()
 username = generate_random_username()
 password = generate_random_password()
 test_register(email, username, password)
 accessToken, refreshToken = test_login(email, username, password)
-test_generate(accessToken, '1', 'Syracuse', 'NY')
+test_generate(accessToken, '2', 'Syracuse', 'NY')
 test_profile(accessToken)
+test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
