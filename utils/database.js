@@ -50,6 +50,8 @@ async function init() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS Trips (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      startingTown TEXT NOT NULL,
+      endingTown TEXT NOT NULL,
       user_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES Users(id)

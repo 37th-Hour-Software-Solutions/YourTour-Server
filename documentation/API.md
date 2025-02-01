@@ -167,20 +167,27 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
 ```
 
 - `POST /profile/update` (Authenticated)
-  - Allows a user to update their profile details such as email, username, password, name, phone number, homestate, and interests.
-  - Request Body:
-    ```json
-    {
-      "email": "new@example.com",
-      "username": "NewUsername",
-      "oldPassword": "OldPassword123!",
-      "password": "NewPassword123!",
-      "name": "Jane Doe",
-      "phone": "+11234567890",
-      "homestate": "CA",
-      "interests": ["technology", "innovation", "science"]
+```json
+{
+    "email": "new@example.com",
+    "username": "NewUsername",
+    "oldPassword": "OldPassword123!",
+    "password": "NewPassword123!",
+    "name": "Jane Doe",
+    "phone": "+11234567890",
+    "homestate": "CA",
+    "interests": ["technology", "innovation", "science"]
+}
+```
+
+```json
+{
+    "error": false,
+    "data": {
+        "message": "Profile updated successfully"
     }
-    ```
+}
+```
 
 
 ### /navigation (navigation.js)
@@ -199,7 +206,40 @@ Query: "100 Main St, Nashville, TN"
 }
 ```
 
+- `GET /navigation/reverse/:latitude/:longitude` (Authenticated)
+```
+Latitude: 36.1627
+Longitude: -86.7816
+
+{
+    "error": false,
+    "data": {
+        "address": "100 Main St, Nashville, TN",
+        "city": "Nashville",
+        "state": "Tennessee",
+        "country": "United States"
+    }
+}
+```
+
 - `GET /navigation/directions/:origin/:destination` (Authenticated)
+
+```
+Origin: "36.1627,-86.7816"
+Destination: "36.1627,-86.7816"
+
+{
+    "error": false,
+    "data": {
+        "tripId": 1,
+        "instructions": [],
+        "distance": 100,
+        "duration": 100
+    }
+}
+```
+
+- `GET /navigation/directions/preview/:origin/:destination` (Authenticated)
 
 ```
 Origin: "36.1627,-86.7816"
@@ -215,19 +255,21 @@ Destination: "36.1627,-86.7816"
 }
 ```
 
+
+
 ### /generate (generate.js)
 
 - `GET /generate/trip/:tripId/city/:city/:state` (Authenticated)
 
 ```
-Trip ID: "1234567890"
+Trip ID: 1
 City: "Nashville"
 State: "Tennessee"
 
 {
     "error": false,
     "data": {
-        "tripId": "1234567890",
+        "tripId": 1,
         "city": "Nashville",
         "state": "Tennessee",
         "facts": []

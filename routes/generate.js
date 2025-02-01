@@ -817,7 +817,7 @@ const generateCityFacts = async (city, state, tripId) => {
     if (existingLocation) {
       return {
         id: existingLocation.id,
-        tripId: tripId,
+        tripId: parseInt(tripId),
         city: existingLocation.city,
         state: existingLocation.state,
         facts: JSON.parse(existingLocation.facts),
@@ -835,7 +835,7 @@ const generateCityFacts = async (city, state, tripId) => {
 
     return {
       id: result.lastInsertRowid,
-      tripId: tripId,
+      tripId: parseInt(tripId),
       city: city,
       state: state,
       facts: summary,
@@ -860,7 +860,7 @@ const generateCityFacts = async (city, state, tripId) => {
 *         name: tripId
 *         required: true
 *         schema:
-*           type: string
+*           type: number
 *         description: The ID of the trip
 *       - in: path
 *         name: city
@@ -902,7 +902,7 @@ const generateCityFacts = async (city, state, tripId) => {
 router.get('/trip/:tripId/city/:city/:state', authenticateAccessToken, async (req, res) => {
   const { tripId, city, state } = req.params;
 
-  if (!tripId || !city || !state) {
+  if (!tripId || !city || !state || !Number.isInteger(parseInt(tripId))) {
     return res.status(400).json({
       error: true,
       data: {
@@ -912,7 +912,7 @@ router.get('/trip/:tripId/city/:city/:state', authenticateAccessToken, async (re
   }
 
   try {
-    const facts = await generateCityFacts(city, state);
+    const facts = await generateCityFacts(city, state, parseInt(tripId));
       
     // Add city and state to user's history
     const userId = req.user.id;
@@ -923,7 +923,7 @@ router.get('/trip/:tripId/city/:city/:state', authenticateAccessToken, async (re
     const insertStmt = db.prepare(
       "INSERT INTO History (user_id, location_id, trip_id) VALUES (?, ?, ?)"
     );
-    insertStmt.run(userId, locationId, tripId);
+    insertStmt.run(userId, locationId, parseInt(tripId));
 
     res.status(200).json({
       error: false,

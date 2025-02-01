@@ -38,6 +38,32 @@ const getCoordinatesFromAddress = async (address) => {
   }
 };
 
+const getAddressFromCoordinates = async (latitude, longitude) => {
+  try{
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`; 
+
+
+    const response = await axios.get(nominatimUrl, {
+      headers: {
+        "User-Agent": "YourTour/1.0 (me@landon.pw)",
+      }
+    });
+
+    if (response.data.length === 0) {
+      throw new Error(`Geocoding failed: No results found`);
+    }
+
+    return {
+      road: response.data.address.road,
+      city: response.data.address.city,
+      state: response.data.address.state,
+      country: response.data.address.country
+    };
+  } catch(error){
+    throw new Error(error);
+  }
+}
+
 /**
  * @swagger
  * /navigation/geocode/{address}:
@@ -79,10 +105,10 @@ const getCoordinatesFromAddress = async (address) => {
  *                       type: number
  *                     formatted_address:
  *                       type: string
- *       401:
- *         description: Unauthorized - Invalid or missing token
  *       400:
  *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */
@@ -119,6 +145,91 @@ router.get('/geocode/:address', authenticateAccessToken, async (req, res) => {
 
 /**
  * @swagger
+ * /navigation/geocode/reverse/{latitude}/{longitude}:
+ *   get:
+ *     summary: Get address from latitude and longitude
+ *     description: Returns the address from a specified latitude and longitude
+ *     security:
+ *       - bearerAuth: []
+ *     tags: [Navigation]
+ *     parameters:
+ *       - in: path
+ *         name: latitude
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: The latitude of the address
+ *       - in: path
+ *         name: longitude
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: The longitude of the address
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Bearer token for authentication
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved address
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error: 
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     road:
+ *                       type: string
+ *                     city:
+ *                       type: string
+ *                     state:
+ *                       type: string
+ *                     country:
+ *                       type: string
+ *       400:
+ *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.get('/geocode/reverse/:latitude/:longitude', authenticateAccessToken, async (req, res) => {
+  const { latitude, longitude } = req.params;
+
+  if (!latitude || !longitude) {
+    return res.status(400).json({
+      error: true,
+      data: { message: "Missing required fields" },
+    });
+  }
+
+  try {
+    const address = await getAddressFromCoordinates(latitude, longitude);
+    res.status(200).json({
+      error: false,
+      data: address,
+    });
+  } catch (error) {
+    console.error("Geocode route error:", error);
+    res.status(500).json({
+      error: true,
+      data: {
+        message: process.env.NODE_ENV === 'development' ? 
+          error.stack :
+          "Internal server error",
+      },
+    });
+  }
+});
+
+/**
+ * @swagger
  * /navigation/directions/{starting}/{ending}:
  *   get:
  *     summary: Get directions from one point to another
@@ -139,6 +250,12 @@ router.get('/geocode/:address', authenticateAccessToken, async (req, res) => {
  *         schema:
  *           type: string
  *         description: The ending point of the trip
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Bearer token for authentication
  *     responses:
  *       200:
  *         description: Successfully retrieved directions
@@ -178,11 +295,18 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
   }
 
   try {
+    const [startLat, startLon] = starting.split(",");
+    const [endLat, endLon] = ending.split(",");
+
+    const startTown = await getAddressFromCoordinates(startLat, startLon);
+    const endTown = await getAddressFromCoordinates(endLat, endLon);
+
+
     // Insert trip into the Trips table and get the last inserted tripId
     const insertTripStmt = db.prepare(
-      "INSERT INTO Trips (user_id) VALUES (?)"
+      "INSERT INTO Trips (user_id, startingTown, endingTown) VALUES (?,?,?)"
     );
-    const result = insertTripStmt.run(req.user.id);
+    const result = insertTripStmt.run(req.user.id, startTown, endTown);
     const tripId = result.lastInsertRowid;
 
     // Fetch the route data
@@ -255,6 +379,12 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
  *         schema:
  *           type: string
  *         description: The ending point of the trip
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Bearer token for authentication
  *     responses:
  *       200:
  *         description: Successfully retrieved directions
