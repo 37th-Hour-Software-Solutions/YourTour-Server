@@ -766,6 +766,24 @@ const getTextFromWikipedia = async (city, state) => {
   }
 };
 
+
+const extractInterest = async (facts , interests) => {
+
+    let final = {};
+
+    interests = interests.concat(["title", "description", "facts", "trivia", "landmarks", "activities", "attractions", "tips"]).map(interest => interest.toLowerCase());
+
+    Object.keys(facts).forEach(key => {
+        if (interests.includes(key.toLowerCase())) {
+            final[key] = facts[key];
+            console.log(key);
+            
+        }
+    });
+
+    return final;
+
+}
 /**
  * Summarizes text using AI model
  * @param {string} text - The text to summarize
@@ -801,7 +819,7 @@ const summarizeText = async (text, city, state) => {
  * @returns {Promise<Object>} City facts and metadata
  * @throws {Error} If database operations fail
  */
-const generateCityFacts = async (city, state, tripId) => {
+const generateCityFacts = async (userID, city, state, tripId) => {
   try {
     // Prepare statements
     const selectStmt = db.prepare(
@@ -811,6 +829,9 @@ const generateCityFacts = async (city, state, tripId) => {
       "INSERT INTO Locations (city, state, facts, is_gem) VALUES (?, ?, ?, ?)"
     );
 
+
+    const userInterests = db.prepare("SELECT name FROM userInterests uin JOIN Interests interest ON interest.id = uin.interest_id WHERE uin.user_id = ? ").all(userID);
+    const mappedInterests = userInterests.map(interest => interest.name);
     // Check if we have cached data
     const existingLocation = selectStmt.get(city, state);
 
@@ -820,7 +841,7 @@ const generateCityFacts = async (city, state, tripId) => {
         tripId: parseInt(tripId),
         city: existingLocation.city,
         state: existingLocation.state,
-        facts: JSON.parse(existingLocation.facts),
+        facts: await extractInterest(JSON.parse(existingLocation.facts), mappedInterests),
         is_gem: Boolean(existingLocation.is_gem),
       };
     }
@@ -838,7 +859,7 @@ const generateCityFacts = async (city, state, tripId) => {
       tripId: parseInt(tripId),
       city: city,
       state: state,
-      facts: summary,
+      facts: await extractInterest(summary, mappedInterests),
       is_gem: isGem,
     };
   } catch (error) {
@@ -912,13 +933,13 @@ router.get('/trip/:tripId/city/:city/:state', authenticateAccessToken, async (re
   }
 
   try {
-    const facts = await generateCityFacts(city, state, parseInt(tripId));
+    const facts = await generateCityFacts(req.user.id, city, state, parseInt(tripId));
       
     // Add city and state to user's history
     const userId = req.user.id;
     const locationId = facts.id;
 
-    console.log(userId, locationId, tripId);
+    console.log(facts, userId, locationId, tripId);
 
     const insertStmt = db.prepare(
       "INSERT INTO History (user_id, location_id, trip_id) VALUES (?, ?, ?)"

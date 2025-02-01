@@ -64,6 +64,49 @@ const getAddressFromCoordinates = async (latitude, longitude) => {
   }
 }
 
+
+const getCityFromCoordinates = async (latitude, longitude) => {
+
+  try{
+    const rapidAPIUrl = `https://wft-geo-db.p.rapidapi.com/v1/geo/locations/${latitude}${longitude}/nearbyCities?types=CITY&radius=50&distanceUnit=MI&minPopulation=100`;
+    const response = await axios.get(rapidAPIUrl, {
+      headers: {
+        "User-Agent": "YourTour/1.0 (me@landon.pw)",
+        "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
+        "x-rapidapi-key": "9d3044f73fmshd0399a50c7f2f9fp17631bjsn9a31e55b945d"
+      }
+    });
+
+    console.log(response.data);
+    if (response.data.length === 0) {
+      throw new Error(`Geocoding failed: No results found`);
+    }
+
+    let weights = [];
+    for(const val of response.data.data) {
+      const population = val.population;
+      const distance = val.distance;
+
+      const preference = (0.6 * (1-(distance/50))) + (0.4 * (population/1000000));
+     
+      weights.push({"preference": preference, "city": val.city, "state": val.region});
+      console.log(preference, val.city, val.region);
+    }
+
+    weights.sort((a, b) => b.preference - a.preference);
+
+    const best = weights[0];
+
+
+    return {
+        city: best.city,
+        state: best.state
+    };
+  } catch(error){
+    throw new Error(error);
+  }
+}
+
 /**
  * @swagger
  * /navigation/geocode/{address}:
@@ -82,6 +125,7 @@ const getAddressFromCoordinates = async (latitude, longitude) => {
  *         description: The full address to geocode
  *       - in: header
  *         name: Authorization
+ *
  *         required: true
  *         schema:
  *           type: string
@@ -228,6 +272,36 @@ router.get('/geocode/reverse/:latitude/:longitude', authenticateAccessToken, asy
   }
 });
 
+router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken, async (req, res) => {
+  const { latitude, longitude } = req.params;
+
+  if (!latitude || !longitude) {
+    return res.status(400).json({
+      error: true,
+      data: { message: "Missing required fields" },
+    });
+  }
+
+  try {
+    res.status(200).json({
+      error: false,
+      data: await getCityFromCoordinates(latitude, longitude),
+    });
+  } catch (error) {
+    console.error("Geocode route error:", error);
+    res.status(500).json({
+      error: true,
+      data: {
+        message: process.env.NODE_ENV === 'development' ? 
+          error.stack :
+          "Internal server error",
+      },
+    });
+  }
+});
+
+
+
 /**
  * @swagger
  * /navigation/directions/{starting}/{ending}:
@@ -302,6 +376,7 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     const [endLat, endLon] = ending.split(",");
 
     const startTown = await getAddressFromCoordinates(startLat, startLon);
+    await new Promise(resolve => setTimeout(resolve, 3000));
     const endTown = await getAddressFromCoordinates(endLat, endLon);
 
     startAddress = startTown.city + ", " + startTown.state;
@@ -326,7 +401,7 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
 
     const response = await axios.get(openstreetmap_url);
     const route = response.data;
-
+    console.log(response.data);
     // Get the distance and time of the route
     const distance = (route.routes[0].distance / 1609.34).toFixed(2);
     const time = Math.ceil(route.routes[0].duration / 60);

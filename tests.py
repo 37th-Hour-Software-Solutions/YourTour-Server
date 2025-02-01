@@ -81,6 +81,16 @@ def test_autocomplete(accessToken, coords, text):
     })
     print(response.json())
 
+def test_poi(accessToken, lat, lon):
+    response = requests.get(f'http://localhost:3000/navigation/geocode/reverse/poi/{lat}/{lon}', headers= {
+        'Authorization': f'{accessToken}'
+    })
+    print("POI: ")
+    print(response.json())
+    return response.json()
+
+
+
 email = generate_random_email()
 username = generate_random_username()
 password = generate_random_password()
@@ -101,4 +111,5 @@ tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{endi
 
 #test_autocomplete(accessToken, '36.005243,-85.975284', 'Murf')
 # Test the generate endpoint
-test_generate(accessToken, tripId, 'Rochester', 'New York')
+test_generate(accessToken, tripId, 'Tampa', 'Florida')
+test_poi(accessToken,'36.005243','-85.975284')

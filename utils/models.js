@@ -30,7 +30,21 @@ Your response should be a JSON object with the following keys:
 - "history": A list of history of the city.
 - "culture": A list of culture of the city
 - "weather": A list of weather of the city
-- "entertainment": A list of entertainment in the city`
+- "entertainment": A list of entertainment in the city
+- "food": "Culinary specialties and local cuisine unique to the city"
+- "sports": "Popular sports teams and recreational activities within the city"
+- "kayaking": "Top kayaking spots and related water sports opportunities"
+- "fishing": "Prime fishing locations and types of fish commonly found"
+- "movies": "Notable movie theaters and film festivals hosted in the city"
+- "tech": "Key technology hubs, startups, and innovation landmarks"
+- "music": "Music scene overview, including venues, genres, and famous musicians from the city"
+- "solo travel": "Best experiences and spots for solo travelers"
+- "animals": "Wildlife encounters and pet-friendly places in the city"
+- "cross country": "Cross country trails and events for running and biking"
+- "live events": "Calendar of live events, including concerts, sports, and theater"
+- "hiking": "Scenic hiking trails and nature walks in and around the city"
+- "working out": "Fitness centers, outdoor workout spots, and health clubs"
+- "community culture": "Insights into the city's community culture, including traditions, festivals, and local gatherings"`;
 
 const client = new openai.OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
