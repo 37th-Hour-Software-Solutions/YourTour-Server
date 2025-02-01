@@ -23,7 +23,6 @@ def test_register(email, username, password):
         'email': email,
         'username': username,
         'password': password,
-        'name': 'John Doe',
         'phone': '+19315815560',
         'homestate': 'NY',
         'interests': ['History', 'Food', 'Sports']
@@ -68,13 +67,19 @@ def test_turnbyturn(accessToken, startCords, endCords):
     print(response.json())
     return response.json()['data']['tripId']
 
-def test_history(accessToken):
-    response = requests.get(f'http://localhost:3000/history', headers= {
+def test_history(accessToken, lat, lon):
+    response = requests.get(f'http://localhost:3000/history/', headers= {
         'Authorization': f'{accessToken}'
     })
     print("History: ")
     print(response.json())
     return response.json()
+
+def test_autocomplete(accessToken, coords, text):
+    response = requests.get(f'http://localhost:3000/navigation/autocomplete/{coords}/{text}', headers={
+        'Authorization': f'{accessToken}'
+    })
+    print(response.json())
 
 email = generate_random_email()
 username = generate_random_username()
@@ -92,8 +97,8 @@ ending_lat, ending_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 1
 # Test create trip
 tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
 
-# Test history
-test_history(accessToken)
+#test_history(accessToken)
 
+#test_autocomplete(accessToken, '36.005243,-85.975284', 'Murf')
 # Test the generate endpoint
 test_generate(accessToken, tripId, 'Syracuse', 'NY')

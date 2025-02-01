@@ -4,8 +4,12 @@ const router = express.Router();
 const { authenticateAccessToken } = require('../middleware/auth');
 const OSRMTextInstructions = require("osrm-text-instructions");
 const osrmTextInstructions = new OSRMTextInstructions("v5"); 
+const dotenv = require('dotenv');
 const { db } = require("../utils/database");
+const { encode } = require('openai/internal/qs/utils.mjs');
 
+
+dotenv.config();
 /**
  * Fetches latitude and longitude from an address using Nominatim API
  * @param {string} address - The full address input by the user
@@ -477,5 +481,112 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
     }
   }
 );
+
+/**
+ * @swagger
+ * tags:
+ *   name: Autocomplete
+ *   description: Address search suggestions using the HERE API
+ */
+
+/**
+ * @swagger
+ * /autocomplete:
+ *   get:
+ *     summary: Get address suggestions
+ *     description: Fetch address suggestions based on the provided query and optional user location.
+ *     tags: [Autocomplete]
+ *     parameters:
+ *       - name: query
+ *         in: query
+ *         description: The search term (address or place) to get suggestions for.
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: lat
+ *         in: query
+ *         description: The latitude of the user's location. Optional.
+ *         required: false
+ *         schema:
+ *           type: number
+ *           format: float
+ *       - name: lon
+ *         in: query
+ *         description: The longitude of the user's location. Optional.
+ *         required: false
+ *         schema:
+ *           type: number
+ *           format: float
+ *     responses:
+ *       200:
+ *         description: A list of address suggestions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 suggestions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       title:
+ *                         type: string
+ *                         example: "123 Main St, New York"
+ *       400:
+ *         description: Bad request, missing query parameter.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Query is required"
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch suggestions"
+ */
+
+// Fetch address suggestions from the HERE API
+const fetchSuggestions = async ( userLocation, text) => {
+  const url = `https://autosuggest.search.hereapi.com/v1/autosuggest?q=${text}&at=${userLocation}&apiKey=${process.env.HERE_API_KEY}`;
+  
+  try {
+    const response = await axios.get(url);
+    return response.data.items || [];
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    return [];
+  }
+};
+
+// Autocomplete route to get suggestions
+router.get('/autocomplete/:coords/:text', async (req, res) => {
+  const { coords, text } = req.params;  // Get query and location from request
+  console.log(coords + ' ' + text)
+  try {
+    const suggestions = await fetchSuggestions(coords, text);
+    res.status(200).json({ error: false, data: suggestions });
+  } catch (error) {
+    res.status(500).json({ error: true, message: 'Failed to fetch suggestions' });
+  }
+});
 
 module.exports = router;
