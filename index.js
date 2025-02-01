@@ -32,6 +32,7 @@ const app = express();
 // Routes
 const authRouter = require('./routes/auth')
 const generateRouter = require('./routes/generate')
+const navigationRouter = require('./routes/navigation')
 
 // Initialize the database
 initialize();
@@ -75,6 +76,7 @@ app.use(cookieParser());
 
 // API routes
 app.use('/auth', authRouter);
+app.use('/navigation', navigationRouter);
 app.use('/generate', generateRouter);
 
 // Setup Swagger docs (before error handlers)
