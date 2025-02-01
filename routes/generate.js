@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const cheerio = require('cheerio');
 const axios = require('axios');
 const router = express.Router();
@@ -148,7 +148,7 @@ const GEMS = [
  * @returns {Promise<string>} The cleaned Wikipedia text
  * @throws {Error} If the page cannot be fetched or parsed
  */
-const getTextFromWikipedia = async (city, state) => {
+/*const getTextFromWikipedia = async (city, state) => {
     try {
         const cityClean = encodeURIComponent(city.replace(/ /g, '_'));
         const stateClean = encodeURIComponent(state.replace(/ /g, '_'));
@@ -179,6 +179,7 @@ const getTextFromWikipedia = async (city, state) => {
  * @returns {Promise<Object>} The summarized content
  * @throws {Error} If the summarization fails
  */
+/*
 const summarizeText = async (text, city, state) => {
     try {
         const response = await models.client.chat.completions.create({
@@ -194,7 +195,7 @@ const summarizeText = async (text, city, state) => {
     } catch (error) {
         throw new Error(error);
     }
-};
+}; */
 
 /**
  * Generates or retrieves facts about a city
@@ -203,6 +204,7 @@ const summarizeText = async (text, city, state) => {
  * @returns {Promise<Object>} City facts and metadata
  * @throws {Error} If database operations fail
  */
+/*
 const generateCityFacts = async (city, state) => {
     try {
         // Prepare statements
@@ -244,7 +246,7 @@ const generateCityFacts = async (city, state) => {
     } catch (error) {
         throw new Error(error);
     }
-};
+}; */
 
 /**
  * @swagger
@@ -293,7 +295,7 @@ const generateCityFacts = async (city, state) => {
  *       500:
  *         description: Server error
  */
-router.get('/:city/:state', authenticateAccessToken, async (req, res) => {
+/*router.get('/:city/:state', authenticateAccessToken, async (req, res) => {
     const { city, state } = req.params;
 
     if (!city || !state) {
@@ -336,4 +338,4 @@ router.get('/:city/:state', authenticateAccessToken, async (req, res) => {
     }
 });
 
-module.exports = router;
+module.exports = router; */
