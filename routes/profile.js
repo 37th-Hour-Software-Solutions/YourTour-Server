@@ -58,13 +58,13 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
 router.get('/', authenticateAccessToken, async (req, res) => {
   const getUserStmt = db.prepare('SELECT id, username, email, phone, homestate, gemsFound FROM Users WHERE id = ?');
   
-
   const getUserBadgesStmt = db.prepare(`SELECT b.name, b.description, b.static_image_url FROM Badges b JOIN UserBadges ub ON b.id = ub.badge_id WHERE ub.user_id = ?`);
-
+  const getUserInterestsStmt = db.prepare(`SELECT i.name FROM Interests i JOIN UserInterests ui ON i.id = ui.interest_id WHERE ui.user_id = ?`);
 
   try {
       const user = getUserStmt.get(req.user.id);
       user.badges = getUserBadgesStmt.all(req.user.id);
+      user.interests = getUserInterestsStmt.all(req.user.id);
       console.log(user.badges);
       return res.json({ error: false, data: user});
   } catch (error) {

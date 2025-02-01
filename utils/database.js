@@ -140,6 +140,8 @@ async function init() {
     )
   `);
 
+
+  // ----------------------------------- REMOVE LATER ----------------------------------- //
   // Generate bcrypt hash for the admin password
   const adminPassword = "admin";
   const hashedPassword = bcrypt.hashSync(adminPassword, 10);
@@ -162,6 +164,7 @@ async function init() {
   });
 }
 
+// ----------------------------------- END REMOVE LATER ----------------------------------- //
 
 module.exports = {
   db,
