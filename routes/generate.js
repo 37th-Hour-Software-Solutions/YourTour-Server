@@ -3,6 +3,8 @@ const cheerio = require("cheerio");
 const axios = require("axios");
 const router = express.Router();
 const models = require("../utils/models");
+const OSRMTextInstructions = require("osrm-text-instructions");
+const osrmTextInstructions = new OSRMTextInstructions("v5"); 
 const { db } = require("../utils/database");
 const { authenticateAccessToken } = require("../middleware/auth");
 
@@ -905,7 +907,7 @@ const generateCityFacts = async (city, state, tripId) => {
  *         description: Server error
  */
 
-router.get("/:city/:state", authenticateAccessToken, async (req, res) => {
+router.get("/trip/:id/:city/:state", authenticateAccessToken, async (req, res) => {
   const { city, state } = req.params;
 
   if (!city || !state) {
@@ -958,20 +960,22 @@ router.get(
     if (!startingcords || !endingcords) {
       return res.status(400).json({
         error: true,
-        data: {
-          message: "Missing required fields",
-        },
+        data: { message: "Missing required fields" },
       });
     }
 
-    // Temporary, add tripId to Trips table
-    const insertTripStmt = db.prepare(
-        'INSERT INTO Trips (user_id, id) VALUES (?, ?)'
-    );
-    insertTripStmt.run(req.user.id, tripId);
-
     try {
-      const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${start_longlat};${end_longlat}?overview=full&alternatives=false&steps=true`;
+      // Insert trip into the Trips table and get the last inserted tripId
+      const insertTripStmt = db.prepare(
+        "INSERT INTO Trips (user_id) VALUES (?)"
+      );
+      const result = insertTripStmt.run(req.user.id);
+
+      const tripId = result.lastInsertRowid; // Get the auto-incremented ID
+
+      // Fetch the route data
+      const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startingcords};${endingcords}?overview=full&alternatives=false&steps=true`;
+      console.log(openstreetmap_url);
 
       const response = await axios.get(openstreetmap_url);
       const route = response.data;
@@ -985,16 +989,22 @@ router.get(
 
       const legs = route.routes[0].legs;
 
-      legs.forEach(function (leg) {
-        leg.steps.forEach(function (step) {
-          const distance = (step.distance / 1609.34).toFixed(2);
+      legs.forEach((leg) => {
+        leg.steps.forEach((step) => {
+          const stepDistance = (step.distance / 1609.34).toFixed(2);
           const instruction = osrmTextInstructions.compile("en", step);
-          console.log(`(${distance} miles): ${instruction}`);
+          console.log(`(${stepDistance} miles): ${instruction}`);
         });
       });
-      res.status(500).json({
+
+      res.status(200).json({
         error: false,
-        data: legs,
+        data: {
+          tripId,
+          route: legs,
+          distance,
+          time,
+        },
       });
     } catch (error) {
       console.error("Generate route error:", error);

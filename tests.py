@@ -59,11 +59,18 @@ def test_geocode(accessToken, address):
     })
     print(response.json())
 
+def test_turnbyturn(accessToken, startCords, endCords):
+    response = requests.get(f'http://localhost:3000/generate/{startCords}/{endCords}', headers={
+        'Authorization': f'{accessToken}'
+    })
+    print(response.json())
+
 email = generate_random_email()
 username = generate_random_username()
 password = generate_random_password()
 test_register(email, username, password)
 accessToken, refreshToken = test_login(email, username, password)
-test_generate(accessToken, '2', 'Syracuse', 'NY')
+# test_generate(accessToken, '2', 'Syracuse', 'NY')
 test_profile(accessToken)
 test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
+test_turnbyturn(accessToken, '36.0067276,-85.9677659', '36.5277607,-87.3588703')
