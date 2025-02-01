@@ -10,29 +10,29 @@ const { authenticateAccessToken } = require('../middleware/auth');
  * @throws {Error} If the Nominatim API request fails
  */
 const getCoordinatesFromAddress = async (address) => {
-    try {
-        const encodedAddress = encodeURIComponent(address);
-        const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}`;
+  try {
+    const encodedAddress = encodeURIComponent(address);
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}`;
+
+    const response = await axios.get(nominatimUrl, {
+      headers: {
+        "User-Agent": "YourTour/1.0 (me@landon.pw)",
+      },
+    });
         
-        const response = await axios.get(nominatimUrl, {
-            headers: {
-                'User-Agent': 'YourTour/1.0 (me@landon.pw)'
-            }
-        });
-        
-        if (response.data.length === 0) {
-            throw new Error(`Geocoding failed: No results found`);
-        }
-        
-        const location = response.data[0];
-        return {
-            latitude: parseFloat(location.lat),
-            longitude: parseFloat(location.lon),
-            formatted_address: location.display_name
-        };
-    } catch (error) {
-        throw new Error(error);
+    if (response.data.length === 0) {
+      throw new Error(`Geocoding failed: No results found`);
     }
+
+    const location = response.data[0];
+    return {
+      latitude: parseFloat(location.lat),
+      longitude: parseFloat(location.lon),
+      formatted_address: location.display_name,
+    };
+  } catch (error) {
+    throw new Error(error);
+  }
 };
 
 /**
@@ -84,34 +84,34 @@ const getCoordinatesFromAddress = async (address) => {
  *         description: Server error
  */
 router.get('/geocode/:address', authenticateAccessToken, async (req, res) => {
-    const { address } = req.params;
+  const { address } = req.params;
 
-    if (!address) {
-        return res.status(400).json({
-            error: true,
-            data: {
-                message: 'Missing required address field'
-            }
-        });
-    }
+  if (!address) {
+    return res.status(400).json({
+      error: true,
+      data: {
+        message: "Missing required address field",
+      },
+    });
+  }
 
-    try {
-        const coordinates = await getCoordinatesFromAddress(address);
-        res.status(200).json({
-            error: false,
-            data: coordinates
-        });
-    } catch (error) {
-        console.error('Geocode route error:', error);
-        res.status(500).json({
-            error: true,
-            data: {
-                message: process.env.NODE_ENV === 'development' ? 
-                    error.stack : 
-                    'Internal server error'
-            }
-        });
-    }
+  try {
+    const coordinates = await getCoordinatesFromAddress(address);
+    res.status(200).json({
+      error: false,
+      data: coordinates,
+    });
+  } catch (error) {
+    console.error("Geocode route error:", error);
+    res.status(500).json({
+      error: true,
+      data: {
+        message: process.env.NODE_ENV === 'development' ? 
+          error.stack :
+          "Internal server error",
+      },
+    });
+  }
 });
 
 module.exports = router;

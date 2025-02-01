@@ -8,6 +8,7 @@ const { registerSchema } = require("../schemas/register.js");
 const { loginSchema } = require("../schemas/login.js");
 const { refreshSchema } = require("../schemas/refresh.js");
 const { authenticateAccessToken } = require("../middleware/auth.js");
+
 /**
  * @swagger
  * /auth/register:
@@ -61,72 +62,72 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  *         description: Server error
  */
 router.post('/register', validateFields(registerSchema), async (req, res) => {
-    const { email, username, password, name, phone, homestate, interests } = req.body;
+  const { email, username, password, name, phone, homestate, interests } = req.body;
 
-    try {
-        // Check if email already exists
-        const checkUserStmt = db.prepare('SELECT id FROM Users WHERE email = ?');
-        const existingUser = checkUserStmt.get(email);
+  try {
+    // Check if email already exists
+    const checkUserStmt = db.prepare("SELECT id FROM Users WHERE email = ?");
+    const existingUser = checkUserStmt.get(email);
 
-        if (existingUser) {
-            return res.status(400).json({
-                error: true,
-                data: {
-                    message: 'An account with this email already exists'
-                }
-            });
-        }
-
-        // Check if username already exists
-        const checkUsernameStmt = db.prepare('SELECT id FROM Users WHERE username = ?');
-        const existingUsername = checkUsernameStmt.get(username);
-        if (existingUsername) {
-            return res.status(400).json({
-                error: true,
-                data: {
-                    message: 'An account with this username already exists'
-                }
-            });
-        }
-
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Convert interests array to string for storage
-        const interestsString = Array.isArray(interests) ? JSON.stringify(interests) : '[]';
-
-        // Insert new user
-        const insertUserStmt = db.prepare(
-            'INSERT INTO Users (username, name, email, hashedPassword, phone, homestate, interests) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        );
-
-        insertUserStmt.run(
-            username,
-            name,
-            email,
-            hashedPassword,
-            phone,
-            homestate,
-            interestsString
-        );
-
-        return res.status(201).json({
-            error: false,
-            data: { 
-                message: 'User registered successfully'
-            }
-        });
-    } catch (error) {
-        console.error('Register error:', error);
-        return res.status(500).json({
-            error: true,
-            data: {
-                message: process.env.NODE_ENV === 'development' ? 
-                    error.stack : 
-                    'Internal server error'
-            }
-        });
+    if (existingUser) {
+      return res.status(400).json({
+        error: true,
+        data: {
+          message: "An account with this email already exists",
+        },
+      });
     }
+
+    // Check if username already exists
+    const checkUsernameStmt = db.prepare("SELECT id FROM Users WHERE username = ?");
+    const existingUsername = checkUsernameStmt.get(username);
+    if (existingUsername) {
+      return res.status(400).json({
+        error: true,
+        data: {
+          message: "An account with this username already exists",
+        },
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Convert interests array to string for storage
+    const interestsString = Array.isArray(interests) ? JSON.stringify(interests) : '[]';
+
+    // Insert new user
+    const insertUserStmt = db.prepare(
+      'INSERT INTO Users (username, name, email, hashedPassword, phone, homestate, interests) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
+
+    insertUserStmt.run(
+      username,
+      name,
+      email,
+      hashedPassword,
+      phone,
+      homestate,
+      interestsString
+    );
+
+    return res.status(201).json({
+      error: false,
+      data: {
+        message: "User registered successfully",
+      },
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    return res.status(500).json({
+      error: true,
+      data: {
+        message: process.env.NODE_ENV === 'development' ? 
+          error.stack : 
+          'Internal server error'
+      }
+    });
+  }
 });
 
 /**
@@ -167,61 +168,61 @@ router.post('/register', validateFields(registerSchema), async (req, res) => {
  *         description: Server error
  */
 router.post('/login', validateFields(loginSchema), async (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    try {
-        // Get user
-        const getUserStmt = db.prepare(
-            'SELECT id, email, name, hashedPassword FROM Users WHERE email = ?'
-        );
-        const user = getUserStmt.get(email);
+  try {
+    // Get user
+    const getUserStmt = db.prepare(
+      "SELECT id, email, name, hashedPassword FROM Users WHERE email = ?"
+    );
+    const user = getUserStmt.get(email);
 
-        if (!user) {
-            return res.status(401).json({
-                error: true,
-                data: {
-					message: 'Invalid credentials'
-				}
-            });
-        }
-
-        // Verify password
-        const isValidPassword = await bcrypt.compare(password, user.hashedPassword);
-        if (!isValidPassword) {
-            return res.status(401).json({
-                error: true,
-                data: {
-					message: 'Invalid credentials'
-				}
-            });
-        }
-
-        // Generate token
-        const accessToken = generateAccessToken({
-            id: user.id,
-            email: user.email,
-            name: user.name
-        });
-
-        const refreshToken = generateRefreshToken({
-            id: user.id
-        });
-
-        return res.json({
-            error: false,
-            data: { accessToken, refreshToken }
-        });
-    } catch (error) {
-        console.error('Login error:', error);
-        return res.status(500).json({
-            error: true,
-            data: {
-				message: process.env.NODE_ENV === 'development' ? 
-					error.stack : 
-					'Internal server error'
-			}
-        });
+    if (!user) {
+      return res.status(401).json({
+        error: true,
+        data: {
+          message: "Invalid credentials",
+        },
+      });
     }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.hashedPassword);
+    if (!isValidPassword) {
+      return res.status(401).json({
+        error: true,
+        data: {
+          message: "Invalid credentials",
+        },
+      });
+    }
+
+    // Generate token
+    const accessToken = generateAccessToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
+
+    const refreshToken = generateRefreshToken({
+      id: user.id,
+    });
+
+    return res.json({
+      error: false,
+      data: { accessToken, refreshToken },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({
+      error: true,
+      data: {
+				message: process.env.NODE_ENV === 'development' ? 
+          error.stack :
+          "Internal server error",
+      },
+    });
+  }
 });
 
 /**
@@ -257,29 +258,28 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
  *         description: Server error
  */
 router.post('/refresh', validateFields(refreshSchema), async (req, res) => {
-    const { refreshToken } = req.body;
+  const { refreshToken } = req.body;
 
-    try {
-        const decoded = verifyRefreshToken(refreshToken);
+  try {
+    const decoded = verifyRefreshToken(refreshToken);
+    const accessToken = generateAccessToken(decoded);
 
-        const accessToken = generateAccessToken(decoded);
+    return res.json({
+      error: false,
+      data: { accessToken },
+    });
 
-        return res.json({
-            error: false,
-            data: { accessToken }
-        });
-
-    } catch (error) {
-        console.error('Refresh error:', error);
-        return res.status(500).json({
-            error: true,
-            data: {
-                message: process.env.NODE_ENV === 'development' ? 
-                    error.stack : 
-                    'Internal server error'
-            }
-        });
-    }
+  } catch (error) {
+    console.error("Refresh error:", error);
+    return res.status(500).json({
+      error: true,
+      data: {
+        message: process.env.NODE_ENV === 'development' ? 
+          error.stack : 
+          "Internal server error",
+      },
+    });
+  }
 });
 
 /**
@@ -315,22 +315,22 @@ router.post('/refresh', validateFields(refreshSchema), async (req, res) => {
  *         description: Server error
  */
 router.get('/profile', authenticateAccessToken, async (req, res) => {
-    const getUserStmt = db.prepare('SELECT id, username, name, email, phone, homestate, interests, gemsFound, badges FROM Users WHERE id = ?');
+  const getUserStmt = db.prepare('SELECT id, username, name, email, phone, homestate, interests, gemsFound, badges FROM Users WHERE id = ?');
     
-    try {
-        const user = getUserStmt.get(req.user.id);
-        return res.json({ error: false, data: user });
-    } catch (error) {
-        console.error('Profile error:', error);
-        return res.status(500).json({
-            error: true,
-            data: {
-                message: process.env.NODE_ENV === 'development' ? 
-                    error.stack : 
-                    'Internal server error'
-            }
-        });
-    }
+  try {
+    const user = getUserStmt.get(req.user.id);
+    return res.json({ error: false, data: user });
+  } catch (error) {
+    console.error("Profile error:", error);
+    return res.status(500).json({
+      error: true,
+      data: {
+        message: process.env.NODE_ENV === 'development' ? 
+          error.stack : 
+          "Internal server error",
+      },
+    });
+  }
 });
 
 module.exports = router;
