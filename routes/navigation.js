@@ -504,12 +504,6 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
   }
 );
 
-/**
- * @swagger
- * tags:
- *   name: Autocomplete
- *   description: Address search suggestions using the HERE API
- */
 
 /**
  * @swagger
@@ -518,27 +512,30 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
  *     summary: Get address suggestions
  *     description: Fetch address suggestions based on the provided query and optional user location.
  *     tags: [Autocomplete]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
+ *       - name: latitude
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: longitude
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: number
  *       - name: query
- *         in: query
- *         description: The search term (address or place) to get suggestions for.
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
- *       - name: lat
- *         in: query
- *         description: The latitude of the user's location. Optional.
- *         required: false
+ *       - in: header
+ *         name: Authorization
+ *         required: true
  *         schema:
- *           type: number
- *           format: float
- *       - name: lon
- *         in: query
- *         description: The longitude of the user's location. Optional.
- *         required: false
- *         schema:
- *           type: number
- *           format: float
+ *           type: string
+ *         description: Bearer token for authentication
  *     responses:
  *       200:
  *         description: A list of address suggestions.
@@ -559,36 +556,16 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
  *                         type: string
  *                         example: "123 Main St, New York"
  *       400:
- *         description: Bad request, missing query parameter.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Query is required"
+ *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *       500:
- *         description: Internal server error.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Failed to fetch suggestions"
+ *         description: Server error
  */
 
 // Fetch address suggestions from the HERE API
-const fetchSuggestions = async ( userLocation, text) => {
-  const url = `https://autosuggest.search.hereapi.com/v1/autosuggest?q=${text}&at=${userLocation}&apiKey=${process.env.HERE_API_KEY}`;
+const fetchSuggestions = async ( coords, query) => {
+  const url = `https://autosuggest.search.hereapi.com/v1/autosuggest?q=${query}&at=${coords}&apiKey=${process.env.HERE_API_KEY}`;
   
   try {
     const response = await axios.get(url);
@@ -600,11 +577,11 @@ const fetchSuggestions = async ( userLocation, text) => {
 };
 
 // Autocomplete route to get suggestions
-router.get('/autocomplete/:coords/:text', async (req, res) => {
-  const { coords, text } = req.params;  // Get query and location from request
-  console.log(coords + ' ' + text)
+router.get('/autocomplete/:latitude/:longitude/:query', authenticateAccessToken, async (req, res) => {
+  const { latitude, longitude, query } = req.params;  // Get query and location from request
+  console.log(latitude + ',' + longitude + ': ' + query)
   try {
-    const suggestions = await fetchSuggestions(coords, text);
+    const suggestions = await fetchSuggestions(latitude + ',' + longitude, query);
     res.status(200).json({ error: false, data: suggestions });
   } catch (error) {
     res.status(500).json({ error: true, message: 'Failed to fetch suggestions' });
