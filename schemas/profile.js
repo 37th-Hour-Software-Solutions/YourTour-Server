@@ -18,9 +18,6 @@ const profileSchema = {
 		},
 		optional: true, // Made optional
 	},
-	name: {
-		optional: true, // Made optional
-	},
 	phone: {
 		isMobilePhone: true,
 		optional: true, // Made optional
