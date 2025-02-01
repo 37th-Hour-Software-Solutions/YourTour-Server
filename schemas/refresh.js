@@ -1,7 +1,7 @@
 const refreshSchema = {
-    refreshToken: {
-        optional: false,
-    }
+  refreshToken: {
+    optional: false,
+  },
 };
 
 module.exports = { refreshSchema };
