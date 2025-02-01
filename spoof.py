@@ -34,6 +34,6 @@ def simulate_drive(start, end, speed_kmh, update_interval):
 
 # Example usage
 if __name__ == "__main__":
-    start_point = (36.1627, -86.7816)  # Nashville, TN
-    end_point = (35.1495, -90.0490)    # Memphis, TN
-    simulate_drive(start_point, end_point, speed_kmh=60, update_interval=5)
+    start_point = (35.9606186, -85.8141516)  # Smithville, TN
+    end_point = (36.2079779, -86.2910945)    # Lebanon, TN
+    simulate_drive(start_point, end_point, speed_kmh=100, update_interval=5)
