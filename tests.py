@@ -64,6 +64,7 @@ def test_turnbyturn(accessToken, startCords, endCords):
     response = requests.get(f'http://localhost:3000/navigation/directions/{startCords}/{endCords}', headers={
         'Authorization': f'{accessToken}'
     })
+    print("Turn-by-turn:") 
     print(response.json())
     return response.json()['data']['tripId']
 
@@ -71,8 +72,10 @@ def test_history(accessToken):
     response = requests.get(f'http://localhost:3000/history', headers= {
         'Authorization': f'{accessToken}'
     })
+    print("History: ")
     print(response.json())
     return response.json()
+
 email = generate_random_email()
 username = generate_random_username()
 password = generate_random_password()
