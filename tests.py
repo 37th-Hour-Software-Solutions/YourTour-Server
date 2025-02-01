@@ -91,8 +91,8 @@ accessToken, refreshToken = test_login(email, username, password)
 test_profile(accessToken)
 
 # Test the geocode endpoint
-starting_lat, starting_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
-ending_lat, ending_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
+starting_lat, starting_long = test_geocode(accessToken, '1976 N Dixie Ave, Cookeville, TN 38501')
+ending_lat, ending_long = test_geocode(accessToken, '1000 N Dixie Ave, Cookeville, TN 38501')
 
 # Test create trip
 tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
@@ -101,4 +101,4 @@ tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{endi
 
 #test_autocomplete(accessToken, '36.005243,-85.975284', 'Murf')
 # Test the generate endpoint
-test_generate(accessToken, tripId, 'Syracuse', 'NY')
+test_generate(accessToken, tripId, 'Rochester', 'New York')

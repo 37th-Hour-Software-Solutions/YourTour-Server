@@ -311,6 +311,9 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     startAddress = startTown.city + ", " + startTown.state;
     endAddress = endTown.city + ", " + endTown.state;
 
+    // For some reason, OSRM expects long,lat instead of lat,long
+    const startLongLat = `${startLon},${startLat}`;
+    const endLongLat = `${endLon},${endLat}`;
 
     // Insert trip into the Trips table and get the last inserted tripId
     const insertTripStmt = db.prepare(
@@ -322,7 +325,7 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     const tripId = result.lastInsertRowid;
     console.log(tripId);
     // Fetch the route data
-    const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${starting};${ending}?overview=full&alternatives=false&steps=true`;
+    const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
     console.log(openstreetmap_url);
 
     const response = await axios.get(openstreetmap_url);
@@ -336,12 +339,17 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     console.log(`Time: ${time} minutes`);
 
     const legs = route.routes[0].legs;
+    const prettySteps = [];
 
     legs.forEach((leg) => {
       leg.steps.forEach((step) => {
         const stepDistance = (step.distance / 1609.34).toFixed(2);
         const instruction = osrmTextInstructions.compile("en", step);
         console.log(`(${stepDistance} miles): ${instruction}`);
+        prettySteps.push({
+          distance: stepDistance,
+          instruction: instruction
+        });
       });
     });
 
@@ -352,6 +360,7 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
         route: legs,
         distance,
         time,
+        prettySteps: prettySteps
       },
     });
   } catch (error) {
@@ -435,8 +444,15 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
 
   try {
 
+    const [startLat, startLon] = starting.split(",");
+    const [endLat, endLon] = ending.split(",");
+
+    const startLongLat = `${startLon},${startLat}`;
+    const endLongLat = `${endLon},${endLat}`;
+
+
     // Fetch the route data
-    const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${starting};${ending}?overview=full&alternatives=false&steps=true`;
+    const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
     console.log(openstreetmap_url);
 
     const response = await axios.get(openstreetmap_url);
@@ -450,12 +466,17 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
     console.log(`Time: ${time} minutes`);
 
     const legs = route.routes[0].legs;
+    const prettySteps = [];
 
     legs.forEach((leg) => {
       leg.steps.forEach((step) => {
         const stepDistance = (step.distance / 1609.34).toFixed(2);
         const instruction = osrmTextInstructions.compile("en", step);
         console.log(`(${stepDistance} miles): ${instruction}`);
+        prettySteps.push({
+          distance: stepDistance,
+          instruction: instruction
+        });
       });
     });
 
@@ -465,6 +486,7 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
         route: legs,
         distance,
         time,
+        prettySteps: prettySteps
       },
     });
   } catch (error) {
