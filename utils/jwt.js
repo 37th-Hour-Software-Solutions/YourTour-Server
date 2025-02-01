@@ -18,7 +18,6 @@ const generateAccessToken = (user) => {
   const payload = {
     id: user.id,
     email: user.email,
-    name: user.name,
   };
 
   return jwt.sign(payload, JWT_SECRET, {
