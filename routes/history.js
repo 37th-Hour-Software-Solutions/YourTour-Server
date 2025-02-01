@@ -44,8 +44,11 @@ const { authenticateAccessToken } = require("../middleware/auth");
  *         description: Server error
  */
 router.get('/', authenticateAccessToken, async (req, res) => {
-  const getTripsStmt = db.prepare('SELECT trip_id, startingTown, endingTown, created_at FROM Trips WHERE user_id = ? ORDER BY created_at DESC LIMIT 20');
+  const getTripsStmt = db.prepare('SELECT id, startingTown, endingTown, created_at FROM Trips WHERE user_id = ? ORDER BY created_at DESC LIMIT 20');
+
   try{
+    console.log("USERID: ")
+    console.log(req.user.id)
     const userTrips = getTripsStmt.all(req.user.id);
     return res.json({ error: false, data: userTrips });
   } catch (error){

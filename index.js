@@ -34,6 +34,7 @@ const authRouter = require('./routes/auth')
 const generateRouter = require('./routes/generate')
 const profileRouter = require('./routes/profile')
 const navigationRouter = require('./routes/navigation')
+const historyRouter = require('./routes/history')
 
 // Initialize the database
 initialize();
@@ -82,6 +83,7 @@ app.use('/auth', authRouter);
 app.use('/profile', profileRouter)
 app.use('/navigation', navigationRouter);
 app.use('/generate', generateRouter);
+app.use('/history', historyRouter)
 
 // Setup Swagger docs (before error handlers)
 if (process.env.NODE_ENV === 'development') {

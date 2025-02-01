@@ -287,6 +287,9 @@ router.get('/geocode/reverse/:latitude/:longitude', authenticateAccessToken, asy
 router.get("/directions/:starting/:ending", authenticateAccessToken, async (req, res) => {
   const { starting, ending } = req.params;
 
+  console.log(`Starting: ${starting}, Ending: ${ending}`);
+
+
   if (!starting || !ending) {
     return res.status(400).json({
       error: true,
@@ -301,14 +304,19 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     const startTown = await getAddressFromCoordinates(startLat, startLon);
     const endTown = await getAddressFromCoordinates(endLat, endLon);
 
+    startAddress = startTown.city + "," + startTown.state;
+    endAddress = endTown.city + "," + endTown.state;
+
 
     // Insert trip into the Trips table and get the last inserted tripId
     const insertTripStmt = db.prepare(
       "INSERT INTO Trips (user_id, startingTown, endingTown) VALUES (?,?,?)"
     );
-    const result = insertTripStmt.run(req.user.id, startTown, endTown);
+    const result = insertTripStmt.run(req.user.id, startAddress, endAddress);
+    console.log(result);
+    
     const tripId = result.lastInsertRowid;
-
+    console.log(tripId);
     // Fetch the route data
     const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${starting};${ending}?overview=full&alternatives=false&steps=true`;
     console.log(openstreetmap_url);
