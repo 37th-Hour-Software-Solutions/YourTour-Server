@@ -63,7 +63,6 @@ def test_turnbyturn(accessToken, startCords, endCords):
     response = requests.get(f'http://localhost:3000/navigation/directions/{startCords}/{endCords}', headers={
         'Authorization': f'{accessToken}'
     })
-    print("Turn-by-turn:") 
     print(response.json())
     return response.json()['data']['tripId']
 
@@ -71,7 +70,6 @@ def test_history(accessToken, lat, lon):
     response = requests.get(f'http://localhost:3000/history/', headers= {
         'Authorization': f'{accessToken}'
     })
-    print("History: ")
     print(response.json())
     return response.json()
 
@@ -85,12 +83,10 @@ def test_poi(accessToken, lat, lon):
     response = requests.get(f'http://localhost:3000/navigation/geocode/reverse/poi/{lat}/{lon}', headers= {
         'Authorization': f'{accessToken}'
     })
-    print("POI: ")
     print(response.json())
-    return response.json()
+    return response.json()['data']['city'], response.json()['data']['state']
 
-
-
+# Simulate creating a user and logging in to get an access token
 email = generate_random_email()
 username = generate_random_username()
 password = generate_random_password()
@@ -100,16 +96,18 @@ accessToken, refreshToken = test_login(email, username, password)
 # Test the profile endpoint
 test_profile(accessToken)
 
-# Test the geocode endpoint
+# Test the geocode endpoint (Simulate user's current location and geocoding their destination)
 starting_lat, starting_long = test_geocode(accessToken, '1301 E Main St, Murfreesboro, TN 37132')
 ending_lat, ending_long = test_geocode(accessToken, '1000 N Dixie Ave, Cookeville, TN 38501')
 
-# Test create trip
+# Test the turn-by-turn endpoint (Simulate generating a route (and thus, a new trip))
 tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
 
-#test_history(accessToken)
+# Test generate POI (Simulate given coords, generate a city state combo)
+city, state = test_poi(accessToken,'36.005243','-85.975284')
 
+# Test the generate facts endpoint (Given a tripId, city, and state, generate facts)
+test_generate(accessToken, tripId, city, state)
+
+#test_history(accessToken)
 #test_autocomplete(accessToken, '36.005243,-85.975284', 'Murf')
-# Test the generate endpoint
-test_generate(accessToken, tripId, 'Tampa', 'Florida')
-test_poi(accessToken,'36.005243','-85.975284')
