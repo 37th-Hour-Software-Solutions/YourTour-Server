@@ -7,7 +7,7 @@ const { authenticateAccessToken } = require('../middleware/auth');
  * Fetches latitude and longitude from an address using Nominatim API
  * @param {string} address - The full address input by the user
  * @returns {Promise<Object>} The latitude and longitude of the address
- * @throws {Error} If the API request fails
+ * @throws {Error} If the Nominatim API request fails
  */
 const getCoordinatesFromAddress = async (address) => {
     try {
@@ -16,7 +16,7 @@ const getCoordinatesFromAddress = async (address) => {
         
         const response = await axios.get(nominatimUrl, {
             headers: {
-                'User-Agent': 'YourAppName/1.0 (your@email.com)'
+                'User-Agent': 'YourTour/1.0 (me@landon.pw)'
             }
         });
         
@@ -37,7 +37,7 @@ const getCoordinatesFromAddress = async (address) => {
 
 /**
  * @swagger
- * /geocode/{address}:
+ * /navigation/geocode/{address}:
  *   get:
  *     summary: Get latitude and longitude from an address
  *     description: Returns the latitude and longitude of a specified address
