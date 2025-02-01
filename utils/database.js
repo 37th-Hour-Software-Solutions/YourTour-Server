@@ -41,9 +41,20 @@ async function init() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             location_id INTEGER NOT NULL,
+            trip_id INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES Users(id),
-            FOREIGN KEY (location_id) REFERENCES Locations(id)
+            FOREIGN KEY (location_id) REFERENCES Locations(id),
+            FOREIGN KEY (trip_id) REFERENCES Trips(id)
+        )
+    `);
+
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS Trips (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES Users(id)
         )
     `);
 }
