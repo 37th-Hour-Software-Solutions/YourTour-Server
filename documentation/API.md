@@ -145,6 +145,23 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
 }
 ```
 
+- `GET /auth/profile` (Authenticated)
+```json
+{
+    "error": false,
+    "data": {
+        "id": "1234567890",
+        "username": "test",
+        "name": "John Doe",
+        "phone": "+11234567890",
+        "homestate": "NY",
+        "interests": ["travel", "food", "history"],
+        "gemsFound": 10,
+        "badges": ["traveler", "foodie", "history buff"],
+    }
+}
+```
+
 ### /navigation (navigation.js)
 
 - `GET /navigation/geocode/:query` (Authenticated)
