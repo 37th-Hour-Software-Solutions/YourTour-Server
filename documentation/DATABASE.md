@@ -10,6 +10,10 @@ CREATE TABLE IF NOT EXISTS Users (
     email TEXT NOT NULL,
     hashedPassword TEXT NOT NULL,
     phone TEXT NOT NULL,
+    homestate TEXT NOT NULL,
+    interests JSON NOT NULL DEFAULT '[]',
+    gemsFound INTEGER DEFAULT 0,
+    badges JSON NOT NULL DEFAULT '[]',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -26,8 +30,17 @@ CREATE TABLE IF NOT EXISTS History (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     location_id INTEGER NOT NULL,
+    trip_id INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id),
-    FOREIGN KEY (location_id) REFERENCES Locations(id)
+    FOREIGN KEY (location_id) REFERENCES Locations(id),
+    FOREIGN KEY (trip_id) REFERENCES Trips(id)
+);
+
+CREATE TABLE IF NOT EXISTS Trips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id)
 );
 ```
