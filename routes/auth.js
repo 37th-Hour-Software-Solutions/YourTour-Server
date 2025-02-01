@@ -197,7 +197,7 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
   try {
     // Get user
     const getUserStmt = db.prepare(
-      "SELECT id, email, name, hashedPassword FROM Users WHERE email = ?"
+      "SELECT id, email, hashedPassword FROM Users WHERE email = ?"
     );
     const user = getUserStmt.get(email);
 
@@ -225,7 +225,6 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
     const accessToken = generateAccessToken({
       id: user.id,
       email: user.email,
-      name: user.name,
     });
 
     const refreshToken = generateRefreshToken({
