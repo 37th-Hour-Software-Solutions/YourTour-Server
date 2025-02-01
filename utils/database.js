@@ -17,9 +17,9 @@ async function init() {
             hashedPassword TEXT NOT NULL,
             homestate TEXT NOT NULL,
             phone TEXT NOT NULL,
-            interests TEXT NOT NULL,
+            interests JSON NOT NULL DEFAULT '[]',
             gemsFound INTEGER DEFAULT 0,
-            badges TEXT NOT NULL,
+            badges JSON NOT NULL DEFAULT '[]',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
