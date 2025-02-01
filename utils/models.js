@@ -33,10 +33,10 @@ Your response should be a JSON object with the following keys:
 - "entertainment": A list of entertainment in the city`
 
 const client = new openai.OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 module.exports = {
-    client,
-    SUMMARY_PROMPT
+  client,
+  SUMMARY_PROMPT
 };

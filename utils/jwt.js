@@ -11,19 +11,19 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'oh_boy_if_we_made_
  * @throws {Error} If user object is invalid
  */
 const generateAccessToken = (user) => {
-    if (!user || !user.id || !user.email) {
-        throw new Error('Invalid user object provided');
-    }
+  if (!user || !user.id || !user.email) {
+    throw new Error("Invalid user object provided");
+  }
 
-    const payload = {
-        id: user.id,
-        email: user.email,
-        name: user.name
-    };
+  const payload = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+  };
 
-    return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: "1h"
-    });
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: "1h",
+  });
 };
 
 /**
@@ -33,17 +33,17 @@ const generateAccessToken = (user) => {
  * @throws {Error} If user object is invalid
  */
 const generateRefreshToken = (user) => {
-    if (!user || !user.id) {
-        throw new Error('Invalid user object provided');
-    }
+  if (!user || !user.id) {
+    throw new Error("Invalid user object provided");
+  }
 
-    const payload = {
-        id: user.id
-    };
+  const payload = {
+    id: user.id,
+  };
 
-    return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: "365d"
-    });
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: "365d",
+  });
 };
 
 /**
@@ -53,15 +53,15 @@ const generateRefreshToken = (user) => {
  * @throws {Error} If token is invalid or expired
  */
 const verifyAccessToken = (token) => {
-    if (!token) {
-        throw new Error('No token provided');
-    }
+  if (!token) {
+    throw new Error("No token provided");
+  }
 
-    try {
-        return jwt.verify(token, JWT_SECRET);
-    } catch (error) {
-        throw new Error('Invalid or expired token');
-    }
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (error) {
+    throw new Error("Invalid or expired token");
+  }
 };
 
 /**
@@ -71,20 +71,20 @@ const verifyAccessToken = (token) => {
  * @throws {Error} If token is invalid or expired
  */
 const verifyRefreshToken = (token) => {
-    if (!token) {
-        throw new Error('No token provided');
-    }
+  if (!token) {
+    throw new Error("No token provided");
+  }
 
-    try {
-        return jwt.verify(token, JWT_REFRESH_SECRET);
-    } catch (error) {
-        throw new Error('Invalid or expired token');
-    }
+  try {
+    return jwt.verify(token, JWT_REFRESH_SECRET);
+  } catch (error) {
+    throw new Error("Invalid or expired token");
+  }
 };
 
 module.exports = {
-    generateAccessToken,
-    generateRefreshToken,
-    verifyAccessToken,
-    verifyRefreshToken
+  generateAccessToken,
+  generateRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
 };
