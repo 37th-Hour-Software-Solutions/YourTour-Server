@@ -10,6 +10,10 @@ CREATE TABLE IF NOT EXISTS Users (
     email TEXT NOT NULL,
     hashedPassword TEXT NOT NULL,
     phone TEXT NOT NULL,
+    homestate TEXT NOT NULL,
+    interests JSON NOT NULL DEFAULT '[]',
+    gemsFound INTEGER DEFAULT 0,
+    badges JSON NOT NULL DEFAULT '[]',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

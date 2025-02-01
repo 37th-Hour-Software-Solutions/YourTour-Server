@@ -102,7 +102,9 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
     "username": "test",
     "password": "password",
     "name": "John Doe",
-    "phone": "+11234567890"
+    "phone": "+11234567890",
+    "homestate": "NY",
+    "interests": ["travel", "food", "history"]
 }
 
 {
@@ -177,15 +179,17 @@ Destination: "36.1627,-86.7816"
 
 ### /generate (generate.js)
 
-- `GET /generate/:city/:state` (Authenticated)
+- `GET /generate/trip/:tripId/city/:city/:state` (Authenticated)
 
 ```
+Trip ID: "1234567890"
 City: "Nashville"
 State: "Tennessee"
 
 {
     "error": false,
     "data": {
+        "tripId": "1234567890",
         "city": "Nashville",
         "state": "Tennessee",
         "facts": []

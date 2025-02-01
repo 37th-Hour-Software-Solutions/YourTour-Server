@@ -203,7 +203,7 @@ const summarizeText = async (text, city, state) => {
  * @returns {Promise<Object>} City facts and metadata
  * @throws {Error} If database operations fail
  */
-const generateCityFacts = async (city, state) => {
+const generateCityFacts = async (city, state, tripId) => {
     try {
         // Prepare statements
         const selectStmt = db.prepare(
@@ -219,6 +219,7 @@ const generateCityFacts = async (city, state) => {
         if (existingLocation) {
             return {
                 id: existingLocation.id,
+                tripId: tripId,
                 city: existingLocation.city,
                 state: existingLocation.state,
                 facts: JSON.parse(existingLocation.facts),
@@ -236,8 +237,9 @@ const generateCityFacts = async (city, state) => {
 
         return {
             id: result.lastInsertRowid,
-            city,
-            state,
+            tripId: tripId,
+            city: city,
+            state: state,
             facts: summary,
             is_gem: isGem
         };
@@ -248,7 +250,7 @@ const generateCityFacts = async (city, state) => {
 
 /**
  * @swagger
- * /generate/{city}/{state}:
+ * /generate/trip/{tripId}/city/{city}/{state}:
  *   get:
  *     summary: Generate or retrieve facts about a city
  *     description: Returns facts about a specified city, either from cache or newly generated
@@ -256,6 +258,12 @@ const generateCityFacts = async (city, state) => {
  *       - bearerAuth: []
  *     tags: [Generate]
  *     parameters:
+ *       - in: path
+ *         name: tripId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the trip
  *       - in: path
  *         name: city
  *         required: true
@@ -293,10 +301,10 @@ const generateCityFacts = async (city, state) => {
  *       500:
  *         description: Server error
  */
-router.get('/:city/:state', authenticateAccessToken, async (req, res) => {
-    const { city, state } = req.params;
+router.get('/trip/:tripId/city/:city/:state', authenticateAccessToken, async (req, res) => {
+    const { tripId, city, state } = req.params;
 
-    if (!city || !state) {
+    if (!tripId || !city || !state) {
         return res.status(400).json({
             error: true,
             data: {
@@ -305,6 +313,12 @@ router.get('/:city/:state', authenticateAccessToken, async (req, res) => {
         });
     }
 
+    // Temporary, add tripId to Trips table
+    const insertTripStmt = db.prepare(
+        'INSERT INTO Trips (user_id, id) VALUES (?, ?)'
+    );
+    insertTripStmt.run(req.user.id, tripId);
+
     try {
         const facts = await generateCityFacts(city, state);
         
@@ -312,12 +326,12 @@ router.get('/:city/:state', authenticateAccessToken, async (req, res) => {
         const userId = req.user.id;
         const locationId = facts.id;
 
-        console.log(userId, locationId);
+        console.log(userId, locationId, tripId);
 
         const insertStmt = db.prepare(
-            'INSERT INTO History (user_id, location_id) VALUES (?, ?)'
+            'INSERT INTO History (user_id, location_id, trip_id) VALUES (?, ?, ?)'
         );
-        insertStmt.run(userId, locationId);
+        insertStmt.run(userId, locationId, tripId);
 
         res.status(200).json({
             error: false,
