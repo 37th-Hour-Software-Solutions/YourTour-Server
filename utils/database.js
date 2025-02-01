@@ -109,12 +109,12 @@ async function init() {
   `);
 
   db.exec(`
-    INSERT INTO Interests (name, description) VALUES 
-      ('History', 'Learn about the history of the United States'),
-      ('Geography', 'Learn about the geography of the United States'),
-      ('Culture', 'Learn about the culture of the United States'),
-      ('Food', 'Learn about the food of the United States'),
-      ('Sports', 'Learn about the sports of the United States')
+    INSERT INTO Interests (name) VALUES 
+      ('History'),
+      ('Geography'),
+      ('Culture'),
+      ('Food'),
+      ('Sports')
   `);
 
   db.exec(`
