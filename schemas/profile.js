@@ -1,4 +1,4 @@
-const registerSchema = {
+const profileSchema = {
 	username: {
 		isAlphanumeric: {
 			ignore: '_'
@@ -34,4 +34,4 @@ const registerSchema = {
 	},
 };
 
-module.exports = { registerSchema };
+module.exports = { profileSchema };
