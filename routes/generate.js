@@ -3,8 +3,6 @@ const cheerio = require("cheerio");
 const axios = require("axios");
 const router = express.Router();
 const models = require("../utils/models");
-const OSRMTextInstructions = require("osrm-text-instructions");
-const osrmTextInstructions = new OSRMTextInstructions("v5"); 
 const { db } = require("../utils/database");
 const { authenticateAccessToken } = require("../middleware/auth");
 
@@ -804,28 +802,28 @@ const summarizeText = async (text, city, state) => {
  * @throws {Error} If database operations fail
  */
 const generateCityFacts = async (city, state, tripId) => {
-    try {
-        // Prepare statements
-        const selectStmt = db.prepare(
-            'SELECT * FROM Locations WHERE city = ? AND state = ?'
-        );
-        const insertStmt = db.prepare(
-            'INSERT INTO Locations (city, state, facts, is_gem) VALUES (?, ?, ?, ?)'
-        );
+  try {
+    // Prepare statements
+    const selectStmt = db.prepare(
+      "SELECT * FROM Locations WHERE city = ? AND state = ?"
+    );
+    const insertStmt = db.prepare(
+      "INSERT INTO Locations (city, state, facts, is_gem) VALUES (?, ?, ?, ?)"
+    );
 
     // Check if we have cached data
     const existingLocation = selectStmt.get(city, state);
 
-        if (existingLocation) {
-            return {
-                id: existingLocation.id,
-                tripId: tripId,
-                city: existingLocation.city,
-                state: existingLocation.state,
-                facts: JSON.parse(existingLocation.facts),
-                is_gem: Boolean(existingLocation.is_gem)
-            };
-        }
+    if (existingLocation) {
+      return {
+        id: existingLocation.id,
+        tripId: tripId,
+        city: existingLocation.city,
+        state: existingLocation.state,
+        facts: JSON.parse(existingLocation.facts),
+        is_gem: Boolean(existingLocation.is_gem),
+      };
+    }
 
     // Generate new data
     const text = await getTextFromWikipedia(city, state);
@@ -833,84 +831,78 @@ const generateCityFacts = async (city, state, tripId) => {
     const isGem = GEMS.some((gem) => gem.city === city && gem.state === state);
 
     // Store in database
-    const result = insertStmt.run(
-      city,
-      state,
-      JSON.stringify(summary),
-      isGem ? 1 : 0
-    );
+    const result = insertStmt.run(city, state, JSON.stringify(summary), isGem ? 1 : 0);
 
-        return {
-            id: result.lastInsertRowid,
-            tripId: tripId,
-            city: city,
-            state: state,
-            facts: summary,
-            is_gem: isGem
-        };
-    } catch (error) {
-        throw new Error(error);
-    }
+    return {
+      id: result.lastInsertRowid,
+      tripId: tripId,
+      city: city,
+      state: state,
+      facts: summary,
+      is_gem: isGem,
+    };
+  } catch (error) {
+    throw new Error(error);
+  }
 };
 
 /**
- * @swagger
- * /generate/trip/{tripId}/city/{city}/{state}:
- *   get:
- *     summary: Generate or retrieve facts about a city
- *     description: Returns facts about a specified city, either from cache or newly generated
- *     security:
- *       - bearerAuth: []
- *     tags: [Generate]
- *     parameters:
- *       - in: path
- *         name: tripId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the trip
- *       - in: path
- *         name: city
- *         required: true
- *         schema:
- *           type: string
- *         description: The name of the city
- *       - in: path
- *         name: state
- *         required: true
- *         schema:
- *           type: string
- *         description: The state of the city
- *       - in: header
- *         name: Authorization
- *         required: true
- *         schema:
- *           type: string
- *         description: Bearer token for authentication
- *     responses:
- *       200:
- *         description: Successfully retrieved city facts
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                 data:
- *                   type: object
- *       401:
- *         description: Unauthorized - Invalid or missing token
- *       400:
- *         description: Invalid request parameters
- *       500:
- *         description: Server error
- */
+* @swagger
+* /generate/trip/{tripId}/city/{city}/{state}:
+*   get:
+*     summary: Generate or retrieve facts about a city
+*     description: Returns facts about a specified city, either from cache or newly generated
+*     security:
+*       - bearerAuth: []
+*     tags: [Generate]
+*     parameters:
+*       - in: path
+*         name: tripId
+*         required: true
+*         schema:
+*           type: string
+*         description: The ID of the trip
+*       - in: path
+*         name: city
+*         required: true
+*         schema:
+*           type: string
+*         description: The name of the city
+*       - in: path
+*         name: state
+*         required: true
+*         schema:
+*           type: string
+*         description: The state of the city
+*       - in: header
+*         name: Authorization
+*         required: true
+*         schema:
+*           type: string
+*         description: Bearer token for authentication
+*     responses:
+*       200:
+*         description: Successfully retrieved city facts
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error: 
+*                   type: boolean
+*                 data:
+*                   type: object
+*       401:
+*         description: Unauthorized - Invalid or missing token
+*       400:
+*         description: Invalid request parameters
+*       500:
+*         description: Server error
+*/
+router.get('/trip/:tripId/city/:city/:state', authenticateAccessToken, async (req, res) => {
+  const { tripId, city, state } = req.params;
 
-router.get("/trip/:id/:city/:state", authenticateAccessToken, async (req, res) => {
-  const { city, state } = req.params;
-
-  if (!city || !state) {
+  if (!tripId || !city || !state) {
     return res.status(400).json({
       error: true,
       data: {
@@ -921,17 +913,17 @@ router.get("/trip/:id/:city/:state", authenticateAccessToken, async (req, res) =
 
   try {
     const facts = await generateCityFacts(city, state);
-
+      
     // Add city and state to user's history
     const userId = req.user.id;
     const locationId = facts.id;
 
-    console.log(userId, locationId);
+    console.log(userId, locationId, tripId);
 
     const insertStmt = db.prepare(
-      "INSERT INTO History (user_id, location_id) VALUES (?, ?)"
+      "INSERT INTO History (user_id, location_id, trip_id) VALUES (?, ?, ?)"
     );
-    insertStmt.run(userId, locationId);
+    insertStmt.run(userId, locationId, tripId);
 
     res.status(200).json({
       error: false,
@@ -950,75 +942,5 @@ router.get("/trip/:id/:city/:state", authenticateAccessToken, async (req, res) =
     });
   }
 });
-
-router.get(
-  "/:startingcords/:endingcords",
-  authenticateAccessToken,
-  async (req, res) => {
-    const { startingcords, endingcords } = req.params;
-
-    if (!startingcords || !endingcords) {
-      return res.status(400).json({
-        error: true,
-        data: { message: "Missing required fields" },
-      });
-    }
-
-    try {
-      // Insert trip into the Trips table and get the last inserted tripId
-      const insertTripStmt = db.prepare(
-        "INSERT INTO Trips (user_id) VALUES (?)"
-      );
-      const result = insertTripStmt.run(req.user.id);
-
-      const tripId = result.lastInsertRowid; // Get the auto-incremented ID
-
-      // Fetch the route data
-      const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startingcords};${endingcords}?overview=full&alternatives=false&steps=true`;
-      console.log(openstreetmap_url);
-
-      const response = await axios.get(openstreetmap_url);
-      const route = response.data;
-
-      // Get the distance and time of the route
-      const distance = (route.routes[0].distance / 1609.34).toFixed(2);
-      const time = Math.ceil(route.routes[0].duration / 60);
-
-      console.log(`Distance: ${distance} miles`);
-      console.log(`Time: ${time} minutes`);
-
-      const legs = route.routes[0].legs;
-
-      legs.forEach((leg) => {
-        leg.steps.forEach((step) => {
-          const stepDistance = (step.distance / 1609.34).toFixed(2);
-          const instruction = osrmTextInstructions.compile("en", step);
-          console.log(`(${stepDistance} miles): ${instruction}`);
-        });
-      });
-
-      res.status(200).json({
-        error: false,
-        data: {
-          tripId,
-          route: legs,
-          distance,
-          time,
-        },
-      });
-    } catch (error) {
-      console.error("Generate route error:", error);
-      res.status(500).json({
-        error: true,
-        data: {
-          message:
-            process.env.NODE_ENV === "development"
-              ? error.stack
-              : "Internal server error",
-        },
-      });
-    }
-  }
-);
 
 module.exports = router;

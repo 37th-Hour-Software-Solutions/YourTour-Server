@@ -58,19 +58,29 @@ def test_geocode(accessToken, address):
         'Authorization': f'{accessToken}'
     })
     print(response.json())
+    return response.json()['data']['latitude'], response.json()['data']['longitude']
 
 def test_turnbyturn(accessToken, startCords, endCords):
-    response = requests.get(f'http://localhost:3000/generate/{startCords}/{endCords}', headers={
+    response = requests.get(f'http://localhost:3000/navigation/directions/{startCords}/{endCords}', headers={
         'Authorization': f'{accessToken}'
     })
     print(response.json())
-
+    return response.json()['data']['tripId']
 email = generate_random_email()
 username = generate_random_username()
 password = generate_random_password()
 test_register(email, username, password)
 accessToken, refreshToken = test_login(email, username, password)
-# test_generate(accessToken, '2', 'Syracuse', 'NY')
+
+# Test the profile endpoint
 test_profile(accessToken)
-test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
-test_turnbyturn(accessToken, '36.0067276,-85.9677659', '36.5277607,-87.3588703')
+
+# Test the geocode endpoint
+starting_lat, starting_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
+ending_lat, ending_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
+
+# Test the turn by turn endpoint
+tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
+
+# Test the generate endpoint
+test_generate(accessToken, '2', 'Syracuse', 'NY')
