@@ -48,7 +48,7 @@ def test_generate(accessToken, tripId, city, state):
     print(response.json())
     
 def test_profile(accessToken):
-    response = requests.get('http://localhost:3000/auth/profile', headers={
+    response = requests.get('http://localhost:3000/profile', headers={
         'Authorization': f'{accessToken}'
     })
     print(response.json())
@@ -89,9 +89,10 @@ test_profile(accessToken)
 starting_lat, starting_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
 ending_lat, ending_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')
 
-# Test the turn by turn endpoint
+# Test create trip
 tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
 
+# Test history
 test_history(accessToken)
 
 # Test the generate endpoint

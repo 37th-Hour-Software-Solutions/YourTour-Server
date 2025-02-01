@@ -304,8 +304,8 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     const startTown = await getAddressFromCoordinates(startLat, startLon);
     const endTown = await getAddressFromCoordinates(endLat, endLon);
 
-    startAddress = startTown.city + "," + startTown.state;
-    endAddress = endTown.city + "," + endTown.state;
+    startAddress = startTown.city + ", " + startTown.state;
+    endAddress = endTown.city + ", " + endTown.state;
 
 
     // Insert trip into the Trips table and get the last inserted tripId
