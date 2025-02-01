@@ -25,7 +25,6 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  *               - email
  *               - username
  *               - password
- *               - name
  *               - phone
  *               - homestate
  *               - interests
@@ -35,8 +34,6 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  *               username:
  *                 type: string
  *               password:
- *                 type: string
- *               name:
  *                 type: string
  *               phone:
  *                 type: string
@@ -64,7 +61,7 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  *         description: Server error
  */
 router.post('/register', validateFields(registerSchema), async (req, res) => {
-  const { email, username, password, name, phone, homestate, interests } = req.body;
+  const { email, username, password, phone, homestate, interests } = req.body;
 
   try {
     // Check if email already exists
@@ -111,12 +108,11 @@ router.post('/register', validateFields(registerSchema), async (req, res) => {
 
     // Insert new user
     const insertUserStmt = db.prepare(
-      'INSERT INTO Users (username, name, email, hashedPassword, phone, homestate) VALUES (?, ?, ?, ?, ?, ?)'
+      'INSERT INTO Users (username, email, hashedPassword, phone, homestate) VALUES (?, ?, ?, ?, ?)'
     );
 
     const insertUserResult = insertUserStmt.run(
       username,
-      name,
       email,
       hashedPassword,
       phone,

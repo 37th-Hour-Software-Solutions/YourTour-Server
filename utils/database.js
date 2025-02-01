@@ -12,7 +12,6 @@ async function init() {
     CREATE TABLE IF NOT EXISTS Users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL,
-      name TEXT NOT NULL,
       email TEXT NOT NULL,
       hashedPassword TEXT NOT NULL,
       phone TEXT NOT NULL,
@@ -116,7 +115,19 @@ async function init() {
       ('Geography'),
       ('Culture'),
       ('Food'),
-      ('Sports')
+      ('Sports'),
+      ('Kayaking'),
+      ('Fishing'),
+      ('Movies'),
+      ('Tech'),
+      ('Music'),
+      ('Solo Travel'),
+      ('Animals'),
+      ('Cross Country'),
+      ('Live Events'),
+      ('Hiking'),
+      ('Working Out'),
+      ('Community Culture')
   `);
 
   db.exec(`

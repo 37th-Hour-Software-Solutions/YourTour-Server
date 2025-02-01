@@ -19,9 +19,6 @@ const registerSchema = {
 		},
 		optional: false,
 	},
-	name: {
-		optional: false,
-	},
 	phone: {
 		isMobilePhone: true,
 		optional: false,
