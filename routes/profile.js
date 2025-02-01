@@ -9,6 +9,12 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
 
 /**
  * @swagger
+ * components:
+ *  securitySchemes:
+ *    bearerAuth:
+ *     type: http
+ *     scheme: bearer
+ *     bearerFormat: JWT
  * /profile:
  *   get:
  *     summary: Get user profile
@@ -52,9 +58,15 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
 router.get('/', authenticateAccessToken, async (req, res) => {
   const getUserStmt = db.prepare('SELECT id, username, email, phone, homestate, gemsFound FROM Users WHERE id = ?');
   
+
+  const getUserBadgesStmt = db.prepare(`SELECT b.name, b.description, b.static_image_url FROM Badges b JOIN UserBadges ub ON b.id = ub.badge_id WHERE ub.user_id = ?`);
+
+
   try {
       const user = getUserStmt.get(req.user.id);
-      return res.json({ error: false, data: user });
+      user.badges = getUserBadgesStmt.all(req.user.id);
+      console.log(user.badges);
+      return res.json({ error: false, data: user});
   } catch (error) {
       console.error('Profile error:', error);
       return res.status(500).json({

@@ -1,4 +1,5 @@
 const db = require('better-sqlite3')('app.db');
+const bcrypt = require('bcrypt');
 
 /**
  * @returns {Promise<void>}
@@ -20,7 +21,6 @@ async function init() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
-
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS Locations (
@@ -79,7 +79,6 @@ async function init() {
   `);
 
   // Insert badges
-
   db.exec(`
     INSERT INTO Badges (name, description, static_image_url) VALUES 
       ('Tourist I', 'Visit 50 unique cities', 'bronze_tourist_badge.png'),
@@ -140,6 +139,27 @@ async function init() {
       FOREIGN KEY (interest_id) REFERENCES Interests(id)
     )
   `);
+
+  // Generate bcrypt hash for the admin password
+  const adminPassword = "admin";
+  const hashedPassword = bcrypt.hashSync(adminPassword, 10);
+
+  // Insert default admin user
+  db.exec(`
+    INSERT INTO Users (username, email, hashedPassword, phone, homestate, gemsFound) VALUES 
+    ('admin', 'admin@example.com', '${hashedPassword}', '0000000000', 'TN', 9999)
+  `);
+
+  // Retrieve all badge and interest IDs and insert them for the admin user
+  const badgeIds = db.prepare('SELECT id FROM Badges').all();
+  badgeIds.forEach(({ id }) => {
+    db.exec(`INSERT INTO UserBadges (user_id, badge_id) VALUES (1, ${id})`);
+  });
+
+  const interestIds = db.prepare('SELECT id FROM Interests').all();
+  interestIds.forEach(({ id }) => {
+    db.exec(`INSERT INTO UserInterests (user_id, interest_id) VALUES (1, ${id})`);
+  });
 }
 
 
