@@ -45,7 +45,7 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  *               interests:
  *                 type: array
  *                 items:
- *                   type: object
+ *                   type: string
  *     responses:
  *       200:
  *         description: User registered successfully

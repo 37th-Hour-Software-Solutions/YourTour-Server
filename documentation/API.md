@@ -145,7 +145,11 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
 }
 ```
 
-- `GET /auth/profile` (Authenticated)
+
+
+### /profile (profile.js)
+
+- `GET /profile` (Authenticated)
 ```json
 {
     "error": false,
@@ -161,6 +165,23 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
     }
 }
 ```
+
+- `POST /profile/update` (Authenticated)
+  - Allows a user to update their profile details such as email, username, password, name, phone number, homestate, and interests.
+  - Request Body:
+    ```json
+    {
+      "email": "new@example.com",
+      "username": "NewUsername",
+      "oldPassword": "OldPassword123!",
+      "password": "NewPassword123!",
+      "name": "Jane Doe",
+      "phone": "+11234567890",
+      "homestate": "CA",
+      "interests": ["technology", "innovation", "science"]
+    }
+    ```
+
 
 ### /navigation (navigation.js)
 
