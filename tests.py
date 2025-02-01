@@ -83,4 +83,4 @@ ending_lat, ending_long = test_geocode(accessToken, '123 Main St, Syracuse, NY 1
 tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
 
 # Test the generate endpoint
-test_generate(accessToken, '2', 'Syracuse', 'NY')
+test_generate(accessToken, tripId, 'Syracuse', 'NY')
