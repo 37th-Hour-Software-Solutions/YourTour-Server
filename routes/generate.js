@@ -235,7 +235,7 @@ const generateCityFacts = async (city, state) => {
         const result = insertStmt.run(city, state, JSON.stringify(summary), isGem ? 1 : 0);
 
         return {
-            id: result.lastID,
+            id: result.lastInsertRowid,
             city,
             state,
             facts: summary,
@@ -293,7 +293,7 @@ const generateCityFacts = async (city, state) => {
  *       500:
  *         description: Server error
  */
-router.get('/:city/:state', async (req, res) => {
+router.get('/:city/:state', authenticateAccessToken, async (req, res) => {
     const { city, state } = req.params;
 
     if (!city || !state) {
@@ -311,6 +311,9 @@ router.get('/:city/:state', async (req, res) => {
         // Add city and state to user's history
         const userId = req.user.id;
         const locationId = facts.id;
+
+        console.log(userId, locationId);
+
         const insertStmt = db.prepare(
             'INSERT INTO History (user_id, location_id) VALUES (?, ?)'
         );
