@@ -92,26 +92,52 @@ router.post('/register', validateFields(registerSchema), async (req, res) => {
       });
     }
 
+    // Check if interests exist
+    for (const interest of interests) {
+      const checkInterestStmt = db.prepare("SELECT id FROM Interests WHERE name = ?");
+      const existingInterest = checkInterestStmt.get(interest);
+      if (!existingInterest) {
+        return res.status(400).json({
+          error: true,
+          data: {
+            message: "Invalid interest",
+          },
+        });
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Convert interests array to string for storage
-    const interestsString = Array.isArray(interests) ? JSON.stringify(interests) : '[]';
-
     // Insert new user
     const insertUserStmt = db.prepare(
-      'INSERT INTO Users (username, name, email, hashedPassword, phone, homestate, interests) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO Users (username, name, email, hashedPassword, phone, homestate) VALUES (?, ?, ?, ?, ?, ?)'
     );
 
-    insertUserStmt.run(
+    const insertUserResult = insertUserStmt.run(
       username,
       name,
       email,
       hashedPassword,
       phone,
-      homestate,
-      interestsString
+      homestate    
     );
+
+    // For each interest, insert into UserInterests  table
+    for (const interest of interests) {
+      
+      // Get interest id (at this point, we know it exists)
+      const getInterestStmt = db.prepare(
+        'SELECT id FROM Interests WHERE name = ?'
+      );
+      const interestId = getInterestStmt.get(interest);
+
+      const insertInterestStmt = db.prepare(
+        'INSERT INTO UserInterests (user_id, interest_id) VALUES (?, ?)'
+      );
+      insertInterestStmt.run(insertUserResult.lastInsertRowid, interestId.id);
+    }
+
 
     return res.status(201).json({
       error: false,

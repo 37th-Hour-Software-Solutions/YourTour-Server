@@ -17,9 +17,7 @@ async function init() {
       hashedPassword TEXT NOT NULL,
       phone TEXT NOT NULL,
       homestate TEXT NOT NULL,
-      interests JSON NOT NULL DEFAULT '[]',
       gemsFound INTEGER DEFAULT 0,
-      badges JSON NOT NULL DEFAULT '[]',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -106,7 +104,6 @@ async function init() {
     CREATE TABLE IF NOT EXISTS Interests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      description TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -118,6 +115,17 @@ async function init() {
       ('Culture', 'Learn about the culture of the United States'),
       ('Food', 'Learn about the food of the United States'),
       ('Sports', 'Learn about the sports of the United States')
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS UserInterests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      interest_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES Users(id),
+      FOREIGN KEY (interest_id) REFERENCES Interests(id)
+    )
   `);
 }
 

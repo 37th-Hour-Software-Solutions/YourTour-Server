@@ -26,7 +26,7 @@ def test_register(email, username, password):
         'name': 'John Doe',
         'phone': '+19315815560',
         'homestate': 'NY',
-        'interests': ['travel', 'food', 'history']
+        'interests': ['History', 'Food', 'Sports']
     })
     print(response.json())
     
