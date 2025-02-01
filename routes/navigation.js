@@ -507,11 +507,11 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
 
 /**
  * @swagger
- * /autocomplete:
+ * /navigation/autocomplete/{latitude}/{longitude}/{query}:
  *   get:
  *     summary: Get address suggestions
  *     description: Fetch address suggestions based on the provided query and optional user location.
- *     tags: [Autocomplete]
+ *     tags: [Navigation]
  *     security:
  *       - bearerAuth: []
  *     parameters:
