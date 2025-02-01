@@ -15,11 +15,11 @@ async function init() {
             name TEXT NOT NULL,
             email TEXT NOT NULL,
             hashedPassword TEXT NOT NULL,
-            homestate TEXT NOT NULL,
             phone TEXT NOT NULL,
-            interests TEXT NOT NULL,
+            homestate TEXT NOT NULL,
+            interests JSON NOT NULL DEFAULT '[]',
             gemsFound INTEGER DEFAULT 0,
-            badges TEXT NOT NULL,
+            badges JSON NOT NULL DEFAULT '[]',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -41,9 +41,20 @@ async function init() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             location_id INTEGER NOT NULL,
+            trip_id INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES Users(id),
-            FOREIGN KEY (location_id) REFERENCES Locations(id)
+            FOREIGN KEY (location_id) REFERENCES Locations(id),
+            FOREIGN KEY (trip_id) REFERENCES Trips(id)
+        )
+    `);
+
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS Trips (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES Users(id)
         )
     `);
 }

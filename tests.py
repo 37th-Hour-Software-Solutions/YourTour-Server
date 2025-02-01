@@ -24,7 +24,9 @@ def test_register(email, username, password):
         'username': username,
         'password': password,
         'name': 'John Doe',
-        'phone': '+19315815560'
+        'phone': '+19315815560',
+        'homestate': 'NY',
+        'interests': ['travel', 'food', 'history']
     })
     print(response.json())
     
@@ -39,8 +41,20 @@ def test_login(email, username, password):
     print(response.json())
     return accessToken, refreshToken
 
-def test_generate(accessToken, city, state):
-    response = requests.get(f'http://localhost:3000/generate/{city}/{state}', headers={
+def test_generate(accessToken, tripId, city, state):
+    response = requests.get(f'http://localhost:3000/generate/trip/{tripId}/city/{city}/{state}', headers={
+        'Authorization': f'{accessToken}'
+    })
+    print(response.json())
+    
+def test_profile(accessToken):
+    response = requests.get('http://localhost:3000/auth/profile', headers={
+        'Authorization': f'{accessToken}'
+    })
+    print(response.json())
+
+def test_geocode(accessToken, address):
+    response = requests.get(f'http://localhost:3000/navigation/geocode/{address}', headers={
         'Authorization': f'{accessToken}'
     })
     print(response.json())
@@ -50,4 +64,6 @@ username = generate_random_username()
 password = generate_random_password()
 test_register(email, username, password)
 accessToken, refreshToken = test_login(email, username, password)
-test_generate(accessToken, 'Syracuse', 'NY')
+test_generate(accessToken, '2', 'Syracuse', 'NY')
+test_profile(accessToken)
+test_geocode(accessToken, '123 Main St, Syracuse, NY 13210')

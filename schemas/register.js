@@ -26,6 +26,13 @@ const registerSchema = {
 		isMobilePhone: true,
 		optional: false,
 	},
+	homestate: {
+		optional: false,
+	},
+	interests: {
+		isArray: true,
+		optional: false,
+	},
 };
 
 module.exports = { registerSchema };

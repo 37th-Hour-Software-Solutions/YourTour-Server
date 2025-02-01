@@ -801,28 +801,29 @@ const summarizeText = async (text, city, state) => {
  * @returns {Promise<Object>} City facts and metadata
  * @throws {Error} If database operations fail
  */
-const generateCityFacts = async (city, state) => {
-  try {
-    // Prepare statements
-    const selectStmt = db.prepare(
-      "SELECT * FROM Locations WHERE city = ? AND state = ?"
-    );
-    const insertStmt = db.prepare(
-      "INSERT INTO Locations (city, state, facts, is_gem) VALUES (?, ?, ?, ?)"
-    );
+const generateCityFacts = async (city, state, tripId) => {
+    try {
+        // Prepare statements
+        const selectStmt = db.prepare(
+            'SELECT * FROM Locations WHERE city = ? AND state = ?'
+        );
+        const insertStmt = db.prepare(
+            'INSERT INTO Locations (city, state, facts, is_gem) VALUES (?, ?, ?, ?)'
+        );
 
     // Check if we have cached data
     const existingLocation = selectStmt.get(city, state);
 
-    if (existingLocation) {
-      return {
-        id: existingLocation.id,
-        city: existingLocation.city,
-        state: existingLocation.state,
-        facts: JSON.parse(existingLocation.facts),
-        is_gem: Boolean(existingLocation.is_gem),
-      };
-    }
+        if (existingLocation) {
+            return {
+                id: existingLocation.id,
+                tripId: tripId,
+                city: existingLocation.city,
+                state: existingLocation.state,
+                facts: JSON.parse(existingLocation.facts),
+                is_gem: Boolean(existingLocation.is_gem)
+            };
+        }
 
     // Generate new data
     const text = await getTextFromWikipedia(city, state);
@@ -837,21 +838,22 @@ const generateCityFacts = async (city, state) => {
       isGem ? 1 : 0
     );
 
-    return {
-      id: result.lastInsertRowid,
-      city,
-      state,
-      facts: summary,
-      is_gem: isGem,
-    };
-  } catch (error) {
-    throw new Error(error);
-  }
+        return {
+            id: result.lastInsertRowid,
+            tripId: tripId,
+            city: city,
+            state: state,
+            facts: summary,
+            is_gem: isGem
+        };
+    } catch (error) {
+        throw new Error(error);
+    }
 };
 
 /**
  * @swagger
- * /generate/{city}/{state}:
+ * /generate/trip/{tripId}/city/{city}/{state}:
  *   get:
  *     summary: Generate or retrieve facts about a city
  *     description: Returns facts about a specified city, either from cache or newly generated
@@ -859,6 +861,12 @@ const generateCityFacts = async (city, state) => {
  *       - bearerAuth: []
  *     tags: [Generate]
  *     parameters:
+ *       - in: path
+ *         name: tripId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the trip
  *       - in: path
  *         name: city
  *         required: true
@@ -896,6 +904,7 @@ const generateCityFacts = async (city, state) => {
  *       500:
  *         description: Server error
  */
+
 router.get("/:city/:state", authenticateAccessToken, async (req, res) => {
   const { city, state } = req.params;
 
@@ -954,6 +963,12 @@ router.get(
         },
       });
     }
+
+    // Temporary, add tripId to Trips table
+    const insertTripStmt = db.prepare(
+        'INSERT INTO Trips (user_id, id) VALUES (?, ?)'
+    );
+    insertTripStmt.run(req.user.id, tripId);
 
     try {
       const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${start_longlat};${end_longlat}?overview=full&alternatives=false&steps=true`;
