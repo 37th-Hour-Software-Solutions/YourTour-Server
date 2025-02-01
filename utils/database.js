@@ -116,7 +116,19 @@ async function init() {
       ('Geography'),
       ('Culture'),
       ('Food'),
-      ('Sports')
+      ('Sports'),
+      ('Kayaking'),
+      ('Fishing'),
+      ('Movies'),
+      ('Tech'),
+      ('Music'),
+      ('Solo Travel'),
+      ('Animals'),
+      ('Cross Country'),
+      ('Live Events'),
+      ('Hiking'),
+      ('Working Out'),
+      ('Community Culture')
   `);
 
   db.exec(`
