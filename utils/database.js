@@ -17,9 +17,7 @@ async function init() {
       hashedPassword TEXT NOT NULL,
       phone TEXT NOT NULL,
       homestate TEXT NOT NULL,
-      interests JSON NOT NULL DEFAULT '[]',
       gemsFound INTEGER DEFAULT 0,
-      badges JSON NOT NULL DEFAULT '[]',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -106,7 +104,6 @@ async function init() {
     CREATE TABLE IF NOT EXISTS Interests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      description TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
