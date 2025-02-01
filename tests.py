@@ -91,7 +91,7 @@ accessToken, refreshToken = test_login(email, username, password)
 test_profile(accessToken)
 
 # Test the geocode endpoint
-starting_lat, starting_long = test_geocode(accessToken, '1976 N Dixie Ave, Cookeville, TN 38501')
+starting_lat, starting_long = test_geocode(accessToken, '1301 E Main St, Murfreesboro, TN 37132')
 ending_lat, ending_long = test_geocode(accessToken, '1000 N Dixie Ave, Cookeville, TN 38501')
 
 # Test create trip

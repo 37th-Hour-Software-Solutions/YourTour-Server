@@ -4,12 +4,8 @@ const router = express.Router();
 const { authenticateAccessToken } = require('../middleware/auth');
 const OSRMTextInstructions = require("osrm-text-instructions");
 const osrmTextInstructions = new OSRMTextInstructions("v5"); 
-const dotenv = require('dotenv');
 const { db } = require("../utils/database");
-const { encode } = require('openai/internal/qs/utils.mjs');
 
-
-dotenv.config();
 /**
  * Fetches latitude and longitude from an address using Nominatim API
  * @param {string} address - The full address input by the user
@@ -43,9 +39,9 @@ const getCoordinatesFromAddress = async (address) => {
 };
 
 const getAddressFromCoordinates = async (latitude, longitude) => {
+
   try{
     const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`; 
-
 
     const response = await axios.get(nominatimUrl, {
       headers: {
