@@ -61,7 +61,7 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  *         description: Server error
  */
 router.post('/register', validateFields(registerSchema), async (req, res) => {
-  const { email, username, password, phone, homestate, interests } = req.body;
+  let { email, username, password, phone, homestate, interests } = req.body;
 
   try {
     // Check if email already exists
