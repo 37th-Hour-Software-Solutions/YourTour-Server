@@ -52,6 +52,14 @@ def test_profile(accessToken):
     })
     print(response.json())
 
+
+def test_profile_update(accessToken):
+    response = requests.post('http://localhost:3000/profile/update', json={'homestate': 'BRUH'}, headers={
+        'Authorization': f'{accessToken}',
+        'Content-Type': 'application/json'
+    })
+    print(response.json())
+
 def test_geocode(accessToken, address):
     response = requests.get(f'http://localhost:3000/navigation/geocode/{address}', headers={
         'Authorization': f'{accessToken}'
@@ -87,14 +95,28 @@ def test_poi(accessToken, lat, lon):
     return response.json()['data']['city'], response.json()['data']['state']
 
 # Simulate creating a user and logging in to get an access token
-email = generate_random_email()
-username = generate_random_username()
-password = generate_random_password()
+
+# Grab user input or generate random credentials if none provided
+email = input("Email: ")
+if (email is None):
+    email = generate_random_email()
+
+username = input("Username: ")
+if (username is None):
+    username = generate_random_username()
+
+password = input("Password: ")
+if (password is None): 
+    password = generate_random_password()
+
+
 test_register(email, username, password)
 accessToken, refreshToken = test_login(email, username, password)
 
 # Test the profile endpoint
 test_profile(accessToken)
+
+test_profile_update(accessToken)
 
 # Test the geocode endpoint (Simulate user's current location and geocoding their destination)
 starting_lat, starting_long = test_geocode(accessToken, '1301 E Main St, Murfreesboro, TN 37132')
