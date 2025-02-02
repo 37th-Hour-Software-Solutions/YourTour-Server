@@ -845,15 +845,14 @@ const generateCityFacts = async (userID, city, state, tripId) => {
         tripId: parseInt(tripId),
         city: existingLocation.city,
         state: existingLocation.state,
-        facts: await extractInterest(JSON.parse(existingLocation.facts), mappedInterests),
-        is_gem: Boolean(existingLocation.is_gem),
+        facts: await extractInterest(JSON.parse(existingLocation.facts), mappedInterests)
       };
     }
 
     // Generate new data
     const text = await getTextFromWikipedia(city, state);
     const summary = await summarizeText(text, city, state);
-    const isGem = GEMS.some((gem) => gem.city === city && gem.state === state);
+    
 
     // Store in database
     const result = insertStmt.run(city, state, JSON.stringify(summary), isGem ? 1 : 0);
@@ -863,8 +862,7 @@ const generateCityFacts = async (userID, city, state, tripId) => {
       tripId: parseInt(tripId),
       city: city,
       state: state,
-      facts: await extractInterest(summary, mappedInterests),
-      is_gem: isGem,
+      facts: await extractInterest(summary, mappedInterests)
     };
   } catch (error) {
     throw new Error(error);
