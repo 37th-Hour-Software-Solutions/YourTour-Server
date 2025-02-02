@@ -180,7 +180,7 @@ async function init() {
     // Insert default admin user
     db.exec(`
       INSERT OR IGNORE INTO Users (username, email, hashedPassword, phone, homestate, gemsFound) VALUES 
-      ('john', 'john@example.com', '${hashedPassword}', '0000000000', 'TN', 9999)
+      ('john', 'john@example.com', '${hashedPassword}', '0000000000', 'TN', 2)
     `);
 
     // Retrieve all badge and interest IDs and insert them for the admin user
