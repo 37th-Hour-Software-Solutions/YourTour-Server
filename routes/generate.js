@@ -767,22 +767,26 @@ const getTextFromWikipedia = async (city, state) => {
 };
 
 
+/**
+ * Extracts relevant information from the summary based on user interests
+ * @param {Object} facts - The summary object
+ * @param {Array} interests - The user's interests
+ * @returns {Object} A copy of the facts object with only the keys that are specific to the user's interests
+ */
 const extractInterest = async (facts , interests) => {
 
-    let final = {};
+  let final = {};
 
-    interests = interests.concat(["title", "description", "facts", "trivia", "landmarks", "activities", "attractions", "tips"]).map(interest => interest.toLowerCase());
+  interests = interests.concat(["title", "description", "facts", "trivia", "landmarks", "activities", "attractions", "tips"]).map(interest => interest.toLowerCase());
 
-    Object.keys(facts).forEach(key => {
-        if (interests.includes(key.toLowerCase())) {
-            final[key] = facts[key];
-            console.log(key);
-            
-        }
-    });
+  Object.keys(facts).forEach(key => {
+    if (interests.includes(key.toLowerCase())) {
+      final[key] = facts[key];
+      console.log(key);
+    }
+  });
 
-    return final;
-
+  return final;
 }
 /**
  * Summarizes text using AI model
