@@ -89,6 +89,9 @@ router.post('/register', validateFields(registerSchema), async (req, res) => {
       });
     }
 
+    // Set all interests to lowercase
+    interests = interests.map(interest => interest.toLowerCase());
+
     // Check if interests exist
     for (const interest of interests) {
       const checkInterestStmt = db.prepare("SELECT id FROM Interests WHERE name = ?");
