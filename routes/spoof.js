@@ -5,52 +5,86 @@ const { authenticateAccessToken } = require('../middleware/auth');
 const OSRMTextInstructions = require("osrm-text-instructions");
 const osrmTextInstructions = new OSRMTextInstructions("v5"); 
 const { db } = require("../utils/database");
+const polyline = require('polyline');
 
-app.get("/simulate-drive", async (req, res) => {
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
+router.get("/:start/:end", authenticateAccessToken, async (req, res) => {
+    const { start, end } = req.params;
 
-    const { startLat, startLon, endLat, endLon, speedKmh, updateInterval } = req.query;
-
-    if (!startLat || !startLon || !endLat || !endLon || !speedKmh || !updateInterval) {
+    if (!start || !end) {
         res.status(400).send("Missing required query parameters.");
         return;
     }
 
+    // Set headers for SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
     try {
         // Step 1: Get route from OSRM
-        const osrmUrl = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
+        console.log("Start:", start);
+        console.log("End:", end);
+
+        // Remove any spaces and validate coordinates
+        const [startLat, startLon] = start.split(',').map(coord => parseFloat(coord.trim()));
+        const [endLat, endLon] = end.split(',').map(coord => parseFloat(coord.trim()));
+
+        // Validate coordinates
+        if (isNaN(startLat) || isNaN(startLon) || isNaN(endLat) || isNaN(endLon)) {
+            throw new Error("Invalid coordinates format");
+        }
+
+        // Format coordinates for OSRM (longitude,latitude format)
+        const formattedStart = `${startLon},${startLat}`;
+        const formattedEnd = `${endLon},${endLat}`;
+
+        const osrmUrl = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${formattedStart};${formattedEnd}?overview=full&alternatives=false&steps=true`;
+        
         const response = await axios.get(osrmUrl);
         const route = response.data.routes[0];
 
         if (!route) {
-            res.status(500).send("No route found.");
+            res.write(`data: ${JSON.stringify({ error: "No route found" })}\n\n`);
+            res.end();
             return;
         }
 
-        // Step 2: Extract coordinates (GeoJSON format)
-        const path = route.geometry.coordinates.map(coord => ({
-            latitude: coord[1],
-            longitude: coord[0]
+        // Step 2: Decode the polyline string into coordinates
+        const path = polyline.decode(route.geometry);
+
+        // Convert the polyline coordinates to {latitude, longitude} objects
+        const pathWithLatLon = path.map(coord => ({
+            latitude: coord[0],
+            longitude: coord[1]
         }));
 
-        let index = 0;
-        const interval = parseInt(updateInterval, 10);
-
         // Step 3: Simulate driving step-by-step
+        let index = 0;
+        const interval = 5000; // 5 seconds
+
+        // Handle client disconnection
+        req.on('close', () => {
+            if (driveInterval) {
+                clearInterval(driveInterval);
+            }
+        });
+
         const driveInterval = setInterval(() => {
-            if (index >= path.length) {
+            if (index >= pathWithLatLon.length) {
                 res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
                 clearInterval(driveInterval);
                 res.end();
             } else {
-                res.write(`data: ${JSON.stringify(path[index])}\n\n`);
+                res.write(`data: ${JSON.stringify(pathWithLatLon[index])}\n\n`);
                 index++;
             }
         }, interval);
+
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Error fetching route data.");
+        console.error('Error:', error.message);
+        res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+        res.end();
     }
 });
+
+module.exports = router;
