@@ -20,7 +20,7 @@ app.get("/simulate-drive", async (req, res) => {
 
     try {
         // Step 1: Get route from OSRM
-        const osrmUrl = `${OSRM_BASE_URL}/route/v1/driving/${startLon},${startLat};${endLon},${endLat}?overview=full&geometries=geojson`;
+        const osrmUrl = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
         const response = await axios.get(osrmUrl);
         const route = response.data.routes[0];
 
