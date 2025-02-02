@@ -165,14 +165,15 @@ router.post('/update', validateFields(profileSchema), authenticateAccessToken, a
     
     const user = db.prepare('SELECT * FROM Users WHERE id = ?').get(req.user.id);     
 
-    // Make sure the old password is correct, otherwise fail to update
-    if (!bcrypt.compareSync(oldPassword, user.hashedPassword)) {
-      return res.status(400).json({
-        error: true,
-        data: { message: 'Old password is incorrect' }
-      }); 
-    }
-      
+    if(oldPassword) {
+      // Make sure the old password is correct, otherwise fail to update
+      if (!bcrypt.compareSync(oldPassword, user.hashedPassword)) {
+        return res.status(400).json({
+          error: true,
+          data: { message: 'Old password is incorrect' }
+        }); 
+      }
+    } 
     // Make sure the new password is not the same as the old password
     if (password && oldPassword == password) {
       return res.status(400).json({
@@ -246,6 +247,7 @@ router.post('/update', validateFields(profileSchema), authenticateAccessToken, a
       }
     }
 
+    console.log(sqlSetParts);
     // If there are any fields to update, update the user
     if (sqlSetParts.length > 0) {
       const sqlQuery = `
@@ -257,6 +259,11 @@ router.post('/update', validateFields(profileSchema), authenticateAccessToken, a
 
       const updateUserStmt = db.prepare(sqlQuery);
       updateUserStmt.run(sqlParams);
+    } else {
+      return res.status(400).json({
+        error: true,
+        data: { message: 'No fields to update' }
+      });
     }
 
     return res.json({
