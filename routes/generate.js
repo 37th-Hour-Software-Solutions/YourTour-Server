@@ -944,12 +944,16 @@ router.get('/trip/:tripId/city/:city/:state', authenticateAccessToken, async (re
     const locationId = facts.id;
 
     console.log(facts, userId, locationId, tripId);
+    // check if the user already has a history entry for this city
+    const existingHistory = db.prepare(
+      "SELECT * FROM History WHERE user_id = ? AND location_id = ? AND trip_id = ?"
+    ).get(userId, locationId, tripId);
 
-    const insertStmt = db.prepare(
-      "INSERT INTO History (user_id, location_id, trip_id) VALUES (?, ?, ?)"
-    );
-    insertStmt.run(userId, locationId, parseInt(tripId));
-
+    if (!existingHistory) {
+      const insertStmt = db.prepare("INSERT INTO History (user_id, location_id, trip_id) VALUES (?, ?, ?)");
+      insertStmt.run(userId, locationId, parseInt(tripId));
+    }
+   
     res.status(200).json({
       error: false,
       data: facts,
