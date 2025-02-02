@@ -16,6 +16,7 @@ When responding:
 
 You should generate data proportional to the size of the city. For example, if the city is small, you should generate less data. If the city is large, you should generate more data.
 Large cities should have 3-5 minutes worth of spoken content. Small cities should have 1-2 minutes worth of spoken content.
+If there is not enough information to generate the data, you should return an empty array for the key.
 
 Tone: Friendly, enthusiastic, and approachable—like a well-informed travel guide.
 Your response should be a JSON object with the following keys:
@@ -31,20 +32,20 @@ Your response should be a JSON object with the following keys:
 - "culture": A list of culture of the city
 - "weather": A list of weather of the city
 - "entertainment": A list of entertainment in the city
-- "food": "Culinary specialties and local cuisine unique to the city"
-- "sports": "Popular sports teams and recreational activities within the city"
-- "kayaking": "Top kayaking spots and related water sports opportunities"
-- "fishing": "Prime fishing locations and types of fish commonly found"
-- "movies": "Notable movie theaters and film festivals hosted in the city"
-- "tech": "Key technology hubs, startups, and innovation landmarks"
-- "music": "Music scene overview, including venues, genres, and famous musicians from the city"
-- "solo travel": "Best experiences and spots for solo travelers"
-- "animals": "Wildlife encounters and pet-friendly places in the city"
-- "cross country": "Cross country trails and events for running and biking"
-- "live events": "Calendar of live events, including concerts, sports, and theater"
-- "hiking": "Scenic hiking trails and nature walks in and around the city"
-- "working out": "Fitness centers, outdoor workout spots, and health clubs"
-- "community culture": "Insights into the city's community culture, including traditions, festivals, and local gatherings"`;
+- "food": A list of culinary specialties and local cuisine unique to the city
+- "sports": A list of popular sports teams and recreational activities within the city
+- "kayaking": A list of top kayaking spots and related water sports opportunities
+- "fishing": A list of prime fishing locations and types of fish commonly found
+- "movies": A list of notable movie theaters and film festivals hosted in the city
+- "tech": A list of key technology hubs, startups, and innovation landmarks
+- "music": A list of music scene overview, including venues, genres, and famous musicians from the city
+- "solo travel": A list of best experiences and spots for solo travelers
+- "animals": A list of wildlife encounters and pet-friendly places in the city
+- "cross country": A list of cross country trails and events for running and biking
+- "live events": A list of popular live events, including concerts, sports, and theater
+- "hiking": A list of scenic hiking trails and nature walks in and around the city
+- "working out": A list of fitness centers, outdoor workout spots, and health clubs
+- "community culture": A list of insights into the city's community culture, including traditions, festivals, and local gatherings`;
 
 const client = new openai.OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

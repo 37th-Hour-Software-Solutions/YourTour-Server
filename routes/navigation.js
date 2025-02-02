@@ -64,10 +64,17 @@ const getAddressFromCoordinates = async (latitude, longitude) => {
   }
 }
 
-
+/**
+ * Fetches a city and state from a given latitude and longitude using the GeoDB API
+ * The city is determined by weighting the city's population and distance from the user's current location
+ * @param {number} latitude - The latitude of the user's current location
+ * @param {number} longitude - The longitude of the user's current location
+ * @returns {Promise<Object>} The city and state of the user's current location
+ * @throws {Error} If the GeoDB API request fails
+ */
 const getCityFromCoordinates = async (latitude, longitude) => {
-
   try{
+
     const rapidAPIUrl = `https://wft-geo-db.p.rapidapi.com/v1/geo/locations/${latitude}${longitude}/nearbyCities?types=CITY&radius=50&distanceUnit=MI&minPopulation=100`;
     const response = await axios.get(rapidAPIUrl, {
       headers: {
@@ -83,20 +90,18 @@ const getCityFromCoordinates = async (latitude, longitude) => {
     }
 
     let weights = [];
-    for(const val of response.data.data) {
+
+    for (const val of response.data.data) {
       const population = val.population;
       const distance = val.distance;
 
       const preference = (0.6 * (1-(distance/50))) + (0.4 * (population/1000000));
      
       weights.push({"preference": preference, "city": val.city, "state": val.region});
-      console.log(preference, val.city, val.region);
     }
 
     weights.sort((a, b) => b.preference - a.preference);
-
     const best = weights[0];
-
 
     return {
         city: best.city,
@@ -272,6 +277,58 @@ router.get('/geocode/reverse/:latitude/:longitude', authenticateAccessToken, asy
   }
 });
 
+/**
+ * @swagger
+ * /navigation/geocode/reverse/poi/{latitude}/{longitude}:
+ *   get:
+ *     summary: Get city and state from latitude and longitude
+ *     description: Returns a POI (Point of Interest) from a specified latitude and longitude
+ *     security:
+ *       - bearerAuth: []
+ *     tags: [Navigation]
+ *     parameters:
+ *       - in: path
+ *         name: latitude
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: The latitude of the address
+ *       - in: path
+ *         name: longitude
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: The longitude of the address
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Bearer token for authentication
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved city and state
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error: 
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     city:
+ *                       type: string
+ *                     state:
+ *                       type: string
+ *       400:
+ *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken, async (req, res) => {
   const { latitude, longitude } = req.params;
 
@@ -299,8 +356,6 @@ router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken,
     });
   }
 });
-
-
 
 /**
  * @swagger
@@ -361,9 +416,6 @@ router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken,
 router.get("/directions/:starting/:ending", authenticateAccessToken, async (req, res) => {
   const { starting, ending } = req.params;
 
-  console.log(`Starting: ${starting}, Ending: ${ending}`);
-
-
   if (!starting || !ending) {
     return res.status(400).json({
       error: true,
@@ -382,7 +434,7 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     startAddress = startTown.city + ", " + startTown.state;
     endAddress = endTown.city + ", " + endTown.state;
 
-    // For some reason, OSRM expects long,lat instead of lat,long
+    // For some reason, OSRM expects long,lat instead of lat,long so we need to swap them
     const startLongLat = `${startLon},${startLat}`;
     const endLongLat = `${endLon},${endLat}`;
 
@@ -394,22 +446,16 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     console.log(result);
     
     const tripId = result.lastInsertRowid;
-    console.log(tripId);
-    // Fetch the route data
-    const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
-    console.log(openstreetmap_url);
+    const osmURL = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
 
-    const response = await axios.get(openstreetmap_url);
-    const route = response.data;
-    console.log(response.data);
+    const response = await axios.get(osmURL);
+    const route = response.data['routes'][0];
+
     // Get the distance and time of the route
-    const distance = (route.routes[0].distance / 1609.34).toFixed(2);
-    const time = Math.ceil(route.routes[0].duration / 60);
+    const distance = (route['distance'] / 1609.34).toFixed(2);
+    const time = Math.ceil(route['duration'] / 60);
 
-    console.log(`Distance: ${distance} miles`);
-    console.log(`Time: ${time} minutes`);
-
-    const legs = route.routes[0].legs;
+    const legs = route['legs'];
     const prettySteps = [];
 
     legs.forEach((leg) => {
@@ -523,10 +569,10 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
 
 
     // Fetch the route data
-    const openstreetmap_url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
-    console.log(openstreetmap_url);
+    const osmURL = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
+    console.log(osmURL);
 
-    const response = await axios.get(openstreetmap_url);
+    const response = await axios.get(osmURL);
     const route = response.data;
 
     // Get the distance and time of the route
