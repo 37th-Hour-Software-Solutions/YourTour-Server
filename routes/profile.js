@@ -62,7 +62,7 @@ router.get('/', authenticateAccessToken, async (req, res) => {
   const getUserInterestsStmt = db.prepare(`SELECT i.name FROM Interests i JOIN UserInterests ui ON i.id = ui.interest_id WHERE ui.user_id = ?`);
 
   try {
-      const user = getUserStmt.get(req.user.id);
+      let user = getUserStmt.get(req.user.id);
       user.badges = getUserBadgesStmt.all(req.user.id);
       user.interests = getUserInterestsStmt.all(req.user.id);
       console.log(user.badges);

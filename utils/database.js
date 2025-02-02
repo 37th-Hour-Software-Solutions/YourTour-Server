@@ -13,7 +13,7 @@ async function init() {
     CREATE TABLE IF NOT EXISTS Users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
-      email TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
       hashedPassword TEXT NOT NULL,
       phone TEXT NOT NULL,
       homestate TEXT NOT NULL,
@@ -66,7 +66,6 @@ async function init() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
-
   db.exec(`
     CREATE TABLE IF NOT EXISTS UserBadges (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -77,6 +76,8 @@ async function init() {
       FOREIGN KEY (badge_id) REFERENCES Badges(id)
     )
   `);
+
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_badges ON UserBadges(user_id, badge_id)`);
 
   try {
     db.exec(`
@@ -127,23 +128,23 @@ async function init() {
     `);
 
     const interests = [
-      'History',
-      'Geography',
-      'Culture',
-      'Food',
-      'Sports',
-      'Kayaking',
-      'Fishing',
-      'Movies',
-      'Tech',
-      'Music',
-      'Solo Travel',
-      'Animals',
-      'Cross Country',
-      'Live Events',
-      'Hiking',
-      'Working Out',
-      'Community Culture'
+      'history',
+      'geography',
+      'culture',
+      'food',
+      'sports',
+      'kayaking',
+      'fishing',
+      'movies',
+      'tech',
+      'music',
+      'solo travel',
+      'animals',
+      'cross country',
+      'live events',
+      'hiking',
+      'working out',
+      'community culture'
     ];
 
     const interestStmt = db.prepare(`
@@ -163,31 +164,45 @@ async function init() {
         FOREIGN KEY (interest_id) REFERENCES Interests(id)
       )
     `);
+    
+    db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_interests ON UserInterests(user_id, interest_id)`);
+
+
   } catch (error) {
     console.error("Error setting up interests: ", error);
   }
 
   try {
     // Generate bcrypt hash for the admin password
-    const adminPassword = "admin";
+    const adminPassword = "Password123!";
     const hashedPassword = bcrypt.hashSync(adminPassword, 10);
 
     // Insert default admin user
     db.exec(`
       INSERT OR IGNORE INTO Users (username, email, hashedPassword, phone, homestate, gemsFound) VALUES 
-      ('admin', 'admin@example.com', '${hashedPassword}', '0000000000', 'TN', 9999)
+      ('john', 'john@example.com', '${hashedPassword}', '0000000000', 'TN', 9999)
     `);
 
     // Retrieve all badge and interest IDs and insert them for the admin user
-    const badgeIds = db.prepare('SELECT id FROM Badges').all();
-    badgeIds.forEach(({ id }) => {
-      db.exec(`INSERT OR IGNORE INTO UserBadges (user_id, badge_id) VALUES (1, ${id})`);
-    });
+//    const badgeIds = db.prepare('SELECT id FROM Badges').all();
+//    badgeIds.forEach(({ id }) => {
+//      db.exec(`INSERT OR IGNORE INTO UserBadges (user_id, badge_id) VALUES (1, ${id})`);
+//    });
 
-    const interestIds = db.prepare('SELECT id FROM Interests').all();
-    interestIds.forEach(({ id }) => {
-      db.exec(`INSERT OR IGNORE INTO UserInterests (user_id, interest_id) VALUES (1, ${id})`);
-    });
+    db.exec(`INSERT OR IGNORE INTO UserBadges (user_id, badge_id) VALUES (1, 1)`);
+    db.exec(`INSERT OR IGNORE INTO UserBadges (user_id, badge_id) VALUES (1, 6)`);
+    db.exec(`INSERT OR IGNORE INTO UserBadges (user_id, badge_id) VALUES (1, 12)`);
+
+
+//    const interestIds = db.prepare('SELECT id FROM Interests').all();
+//    interestIds.forEach(({ id }) => {
+//      db.exec(`INSERT OR IGNORE INTO UserInterests (user_id, interest_id) VALUES (1, ${id})`);
+//    });
+//
+    db.exec(`INSERT OR IGNORE INTO UserInterests (user_id, interest_id) VALUES (1, 1)`);
+    db.exec(`INSERT OR IGNORE INTO UserInterests (user_id, interest_id) VALUES (1, 2)`);
+    db.exec(`INSERT OR IGNORE INTO UserInterests (user_id, interest_id) VALUES (1, 3)`);
+
   } catch (error) {
     console.error("Error setting up admin user: ", error);
   }
