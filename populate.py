@@ -1,8 +1,6 @@
 # This file is used to test the API endpoints
 
 import requests
-import random
-import string
 
 BASE_URL = 'http://ec2-18-222-210-86.us-east-2.compute.amazonaws.com:3000'
     
@@ -44,7 +42,7 @@ def test_poi(accessToken, lat, lon):
     return response.json()['data']['city'], response.json()['data']['state']
 
 # Simulate creating a user and logging in to get an access token
-accessToken, refreshToken = test_login("admin@example.com", "admin")
+accessToken, refreshToken = test_login("john@example.com", "Password123!")
 
 trips = [
     {
