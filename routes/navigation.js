@@ -5,7 +5,7 @@ const { authenticateAccessToken } = require('../middleware/auth');
 const OSRMTextInstructions = require("osrm-text-instructions");
 const osrmTextInstructions = new OSRMTextInstructions("v5"); 
 const { db } = require("../utils/database");
-const GEMS = require('../utils/config.json');
+const GEMS = require('../utils/config.js');
 const e = require('express');
 
 /**
