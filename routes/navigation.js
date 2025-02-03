@@ -5,6 +5,8 @@ const { authenticateAccessToken } = require('../middleware/auth');
 const OSRMTextInstructions = require("osrm-text-instructions");
 const osrmTextInstructions = new OSRMTextInstructions("v5"); 
 const { db } = require("../utils/database");
+const GEMS = require('../utils/config.json');
+const e = require('express');
 
 /**
  * Fetches latitude and longitude from an address using Nominatim API
@@ -339,11 +341,128 @@ router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken,
     });
   }
 
-  try {
-    res.status(200).json({
+  // get city based on provided coordinates
+  const {city, state} = await getCityFromCoordinates(latitude, longitude);
+
+  // search database for if city is a gem
+  const isGem = GEMS.some((gem) => gem.city === city && gem.state === state);
+  
+
+  if (isGem) {
+    let gemsFound;
+    try {
+      // increment user's gemsFound count
+      const stmtUpdateGemsFound = db.prepare("UPDATE Users SET gemsFound = gemsFound + 1 WHERE id = ? RETURNING gemsFound");
+      gemsFound = stmtUpdateGemsFound.run(req.user.id);
+    } catch (error) {
+      res.status(500).json({
+        error: true,
+        data: {
+          message: process.env.NODE_ENV === 'development' ? 
+            error.stack :
+            "Error incrementing gemsFound",
+        }
+      });
+    }
+
+    if (gemsFound = 1) {
+      // insert into UserBadges
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 6)");
+      stmtInsertUserBadge.run(req.user.id);
+    } else if (gemsFound = 5) {
+      // insert into UserBadges
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 7)");
+      stmtInsertUserBadge.run(req.user.id);
+    } else if (gemsFound = 20) {
+      // insert into UserBadges
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 8)");
+      stmtInsertUserBadge.run(req.user.id);
+    } else if (gemsFound = 50) {
+      // insert into UserBadges
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 9)");
+      stmtInsertUserBadge.run(req.user.id);
+    } else if (gemsFound = 100) {
+      // insert into UserBadges
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 10)");
+      stmtInsertUserBadge.run(req.user.id);
+    }
+
+    
+  }
+
+  const stmtUniqVisits = db.prepare(`SELECT 
+            COUNT(DISTINCT l.city || ',' || l.state) as uniqueCities,
+            COUNT(DISTINCT l.state) as uniqueStates
+            FROM History h
+            JOIN Locations l ON h.location_id = l.id
+            WHERE h.user_id = ?`)
+  const result = stmtUniqVisits.get(req.user.id);
+
+  // handle state-based badges
+  if (result.uniqueStates == 50) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 12)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueStates == 3) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 13)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueStates == 5) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 14)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueStates == 10) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 15)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueStates == 20) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 16)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueStates == 50) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 17)");
+    stmtInsertUserBadge.run(req.user.id);
+  }
+
+  // handle city-based badges
+  if (result.uniqueCities == 50) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 1)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueCities == 100) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 2)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueCities == 200) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 3)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueCities == 500) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 4)");
+    stmtInsertUserBadge.run(req.user.id);
+  } else if (result.uniqueCities == 1000) {
+    // insert into UserBadges
+    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 5)");
+    stmtInsertUserBadge.run(req.user.id);
+  }
+
+  res.status(200).json({
       error: false,
-      data: await getCityFromCoordinates(latitude, longitude),
-    });
+      data: {
+        city: city,
+        state: state,
+        is_gem: isGem
+      },
+  });
+  
+  try {
+  // PRETTY SURE THIS IS NOT NEEDED AND RESULTS IN OUR RATE LIMIT ERROR
+  //    res.status(200).json({
+  //      error: false,
+  //      data: await getCityFromCoordinates(latitude, longitude),
+  //    });
   } catch (error) {
     console.error("Geocode route error:", error);
     res.status(500).json({
