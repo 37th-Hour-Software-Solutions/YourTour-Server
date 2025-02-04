@@ -1,5 +1,139 @@
+const BADGES = [
+  {
+    name: 'Tourist I',
+    description: 'Visit 10 unique cities',
+    static_image_url: 'bronze_tourist_badge.png'
+  },
+  {
+    name: 'Tourist II',
+    description: 'Visit 20 unique cities',
+    static_image_url: 'silver_tourist_badge.png'
+  },
+  {
+    name: 'Tourist III',
+    description: 'Visit 50 unique cities',
+    static_image_url: 'gold_tourist_badge.png'
+  },
+  {
+    name: 'Tourist IV',
+    description: 'Visit 100 unique cities',
+    static_image_url: 'diamond_tourist_badge.png'
+  },
+  {
+    name: 'Tourist V',
+    description: 'Visit 500 unique cities',
+    static_image_url: 'emerald_tourist_badge.png'
+  },
+  {
+    name: 'Gem Hunter I',
+    description: 'Find 1 gem',
+    static_image_url: 'bronze_gem_badge.png'
+  },
+  {
+    name: 'Gem Hunter II',
+    description: 'Find 5 gems',
+    static_image_url: 'silver_gem_badge.png'
+  },
+  {
+    name: 'Gem Hunter III',
+    description: 'Find 20 gems',
+    static_image_url: 'gold_gem_badge.png'
+  },
+  {
+    name: 'Gem Hunter IV',
+    description: 'Find 50 gems',
+    static_image_url: 'diamond_gem_badge.png'
+  },
+  {
+    name: 'Gem Hunter V',
+    description: 'Find 100 gems',
+    static_image_url: 'emerald_gem_badge.png'
+  },
+  {
+    name: 'In The Wild',
+    description: 'Visit a city that has no facts',
+    static_image_url: 'wild_badge.png'
+  },
+  {
+    name: 'Explorer I',
+    description: 'Visit 3 unique states',
+    static_image_url: 'bronze_explorer_badge.png'
+  },
+  {
+    name: 'Explorer II',
+    description: 'Visit 5 unique states',
+    static_image_url: 'silver_explorer_badge.png'
+  },
+  {
+    name: 'Explorer III',
+    description: 'Visit 10 unique states',
+    static_image_url: 'gold_explorer_badge.png'
+  },
+  {
+    name: 'Explorer IV',
+    description: 'Visit 20 unique states',
+    static_image_url: 'diamond_explorer_badge.png'
+  },
+  {
+    name: 'Explorer V',
+    description: 'Visit 50 unique states',
+    static_image_url: 'emerald_explorer_badge.png'
+  }
+]
 
-
+const INTERESTS = [
+  {
+    name: 'history',
+  },
+  {
+    name: 'geography',
+  },
+  {
+    name: 'culture',
+  },
+  {
+    name: 'food',
+  },
+  {
+    name: 'sports',
+  },
+  {
+    name: 'kayaking',
+  },
+  {
+    name: 'fishing',
+  },
+  {
+    name: 'movies',
+  },
+  {
+    name: 'tech',
+  },
+  {
+    name: 'music',
+  },
+  {
+    name: 'solo travel',
+  },
+  {
+    name: 'animals',
+  },
+  {
+    name: 'cross country',
+  },
+  {
+    name: 'live events',
+  },
+  {
+    name: 'hiking',
+  },
+  {
+    name: 'working out',
+  },
+  {
+    name: 'community culture',
+  }
+];
 
 const GEMS = [
   {
@@ -731,4 +865,8 @@ const GEMS = [
 ];
 
 
-module.exports = GEMS;
+module.exports = {
+  BADGES,
+  GEMS,
+  INTERESTS
+}

@@ -159,9 +159,27 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
         "name": "John Doe",
         "phone": "+11234567890",
         "homestate": "NY",
-        "interests": ["travel", "food", "history"],
-        "gemsFound": 10,
-        "badges": ["traveler", "foodie", "history buff"],
+        "interests": [
+            {
+                "name": "travel",
+            }
+        ],
+        "gems": [
+            {
+                "city": "New York",
+                "state": "NY",
+                "description": "The Big Apple"
+            }
+        ],
+        "badges": [
+            {
+                "name": "traveler",
+                "description": "Traveled to 10 countries",
+                "static_image_url": "https://example.com/traveler.png"
+            }
+        ],
+        "gemsFound": 1,
+        "badgesFound": 1
     }
 }
 ```
@@ -189,7 +207,6 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
 }
 ```
 
-
 ### /navigation (navigation.js)
 
 - `GET /navigation/geocode/:query` (Authenticated)
@@ -201,12 +218,14 @@ Query: "100 Main St, Nashville, TN"
     "error": false,
     "data": {
         "latitude": 36.1627,
-        "longitude": -86.7816
+        "longitude": -86.7816,
+        "formatted_address": "100 Main St, Nashville, TN"
     }
 }
 ```
 
-- `GET /navigation/reverse/:latitude/:longitude` (Authenticated)
+- `GET /navigation/geocode/reverse/:latitude/:longitude` (Authenticated)
+
 ```
 Latitude: 36.1627
 Longitude: -86.7816
@@ -214,13 +233,31 @@ Longitude: -86.7816
 {
     "error": false,
     "data": {
-        "address": "100 Main St, Nashville, TN",
+        "road": "100 Main St",
         "city": "Nashville",
         "state": "Tennessee",
         "country": "United States"
     }
 }
 ```
+
+- `GET /navigation/geocode/reverse/poi/:latitude/:longitude` (Authenticated)
+
+```
+Latitude: 36.1627
+Longitude: -86.7816
+
+{
+    "error": false,
+    "data": {
+        "city": "Nashville",
+        "state": "Tennessee",
+        "isGem": true,
+        "isBadge": true
+    }
+}
+```
+
 
 - `GET /navigation/directions/:origin/:destination` (Authenticated)
 
@@ -234,7 +271,8 @@ Destination: "36.1627,-86.7816"
         "tripId": 1,
         "instructions": [],
         "distance": 100,
-        "duration": 100
+        "duration": 100,
+        "prettySteps": []
     }
 }
 ```
@@ -250,7 +288,8 @@ Destination: "36.1627,-86.7816"
     "data": {
         "instructions": [],
         "distance": 100,
-        "duration": 100
+        "duration": 100,
+        "prettySteps": []
     }
 }
 ```

@@ -35,10 +35,9 @@ def test_login(email, password):
         'email': email,
         'password': password
     })
-    print(response)
+    print(response.json())
     accessToken = response.json()['data']['accessToken']
     refreshToken = response.json()['data']['refreshToken']
-    print(response.json())
     return accessToken, refreshToken
 
 def test_generate(accessToken, tripId, city, state):
@@ -55,7 +54,7 @@ def test_profile(accessToken):
 
 
 def test_profile_update(accessToken):
-    response = requests.post('http://localhost:3000/profile/update', json={'homestate': 'BRUH'}, headers={
+    response = requests.post('http://localhost:3000/profile/update', json={'homestate': 'WV'}, headers={
         'Authorization': f'{accessToken}',
         'Content-Type': 'application/json'
     })
@@ -75,7 +74,7 @@ def test_turnbyturn(accessToken, startCords, endCords):
     print(response.json())
     return response.json()['data']['tripId']
 
-def test_history(accessToken, lat, lon):
+def test_history(accessToken):
     response = requests.get(f'http://localhost:3000/history/', headers= {
         'Authorization': f'{accessToken}'
     })
@@ -117,39 +116,40 @@ def test_spoof(accessToken, start, end):
 
 # Grab user input or generate random credentials if none provided
 email = input("Email: ")
-if (email is None):
+if (email == ""):
     email = generate_random_email()
 
 username = input("Username: ")
-if (username is None):
+if (username == ""):
     username = generate_random_username()
 
 password = input("Password: ")
-if (password is None): 
+if (password == ""): 
     password = generate_random_password()
 
+print(f"Email: {email}, Username: {username}, Password: {password}")
 
 test_register(email, username, password)
-accessToken, refreshToken = test_login(email, username, password)
-
-# Test the profile endpoint
-#test_profile(accessToken)
+accessToken, refreshToken = test_login(email, password)
 
 test_profile_update(accessToken)
 
+# Test the profile endpoint
+test_profile(accessToken)
+
 # Test the geocode endpoint (Simulate user's current location and geocoding their destination)
-#starting_lat, starting_long = test_geocode(accessToken, '1301 E Main St, Murfreesboro, TN 37132')
-#ending_lat, ending_long = test_geocode(accessToken, '1000 N Dixie Ave, Cookeville, TN 38501')
+starting_lat, starting_long = test_geocode(accessToken, '1301 E Main St, Murfreesboro, TN 37132')
+ending_lat, ending_long = test_geocode(accessToken, '1000 N Dixie Ave, Cookeville, TN 38501')
 
 # Test the turn-by-turn endpoint (Simulate generating a route (and thus, a new trip))
-#tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
+tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
 # Test generate POI (Simulate given coords, generate a city state combo)
-#city, state = test_poi(accessToken,'36.005243','-85.975284')
+city, state = test_poi(accessToken,'36.005243','-85.975284')
 
 # Test the generate facts endpoint (Given a tripId, city, and state, generate facts)
-#test_generate(accessToken, tripId, city, state)
+test_generate(accessToken, tripId, city, state)
 
-test_spoof(accessToken,'36.0067,-85.9678', '36.174465,-86.767960')
+# test_spoof(accessToken,'36.0067,-85.9678', '36.174465,-86.767960')
 
-#test_history(accessToken)
+test_history(accessToken)
 #test_autocomplete(accessToken, '36.005243,-85.975284', 'Murf')

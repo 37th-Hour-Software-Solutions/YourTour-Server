@@ -132,7 +132,6 @@ const getCityFromCoordinates = async (latitude, longitude) => {
  *         description: The full address to geocode
  *       - in: header
  *         name: Authorization
- *
  *         required: true
  *         schema:
  *           type: string
@@ -324,6 +323,10 @@ router.get('/geocode/reverse/:latitude/:longitude', authenticateAccessToken, asy
  *                       type: string
  *                     state:
  *                       type: string
+ *                     isGem:
+ *                       type: boolean
+ *                     isBadge:
+ *                       type: boolean
  *       400:
  *         description: Invalid request parameters
  *       401:
@@ -341,111 +344,93 @@ router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken,
     });
   }
 
-  // get city based on provided coordinates
   const {city, state} = await getCityFromCoordinates(latitude, longitude);
 
-  // search database for if city is a gem
-  const isGem = GEMS.some((gem) => gem.city === city && gem.state === state);
-  
+  // Determine if the city is a gem
+  const isGem = await db.prepare("SELECT COUNT(*) count FROM Gems WHERE city = ? AND state = ?").get(city, state).count > 0;
+
+  console.log("aaa ", isGem);
 
   if (isGem) {
-    let gemsFound;
-    try {
-      // increment user's gemsFound count
-      const stmtUpdateGemsFound = db.prepare("UPDATE Users SET gemsFound = gemsFound + 1 WHERE id = ? RETURNING gemsFound");
-      gemsFound = stmtUpdateGemsFound.run(req.user.id);
-    } catch (error) {
-      res.status(500).json({
-        error: true,
-        data: {
-          message: process.env.NODE_ENV === 'development' ? 
-            error.stack :
-            "Error incrementing gemsFound",
-        }
-      });
-    }
-
-    if (gemsFound = 1) {
-      // insert into UserBadges
-      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 6)");
-      stmtInsertUserBadge.run(req.user.id);
-    } else if (gemsFound = 5) {
-      // insert into UserBadges
-      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 7)");
-      stmtInsertUserBadge.run(req.user.id);
-    } else if (gemsFound = 20) {
-      // insert into UserBadges
-      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 8)");
-      stmtInsertUserBadge.run(req.user.id);
-    } else if (gemsFound = 50) {
-      // insert into UserBadges
-      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 9)");
-      stmtInsertUserBadge.run(req.user.id);
-    } else if (gemsFound = 100) {
-      // insert into UserBadges
-      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 10)");
-      stmtInsertUserBadge.run(req.user.id);
-    }
-
-    
+    const stmtInsertUserGem = db.prepare("INSERT OR IGNORE INTO UserGems (user_id, gem_id) VALUES (?, (SELECT id FROM Gems WHERE city = ? AND state = ?))");
+    stmtInsertUserGem.run(req.user.id, city, state);
   }
 
-  const stmtUniqVisits = db.prepare(`SELECT 
-            COUNT(DISTINCT l.city || ',' || l.state) as uniqueCities,
-            COUNT(DISTINCT l.state) as uniqueStates
-            FROM History h
-            JOIN Locations l ON h.location_id = l.id
-            WHERE h.user_id = ?`)
-  const result = stmtUniqVisits.get(req.user.id);
+  // Reward user with badges
+  const isBadge = false;
 
-  // handle state-based badges
-  if (result.uniqueStates == 50) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 12)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueStates == 3) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 13)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueStates == 5) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 14)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueStates == 10) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 15)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueStates == 20) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 16)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueStates == 50) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 17)");
-    stmtInsertUserBadge.run(req.user.id);
+  // State badges - Count unique states visited
+  const stmtGetUserStates = db.prepare(`
+      SELECT COUNT(DISTINCT l.state) as count
+      FROM History h
+      JOIN Locations l ON h.location_id = l.id
+      WHERE h.user_id = ?
+  `);
+  const userStates = stmtGetUserStates.get(req.user.id);
+
+  // Check state badge thresholds
+  if (userStates.count == 3) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Explorer I'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
+  } else if (userStates.count == 5) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Explorer II'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
+  } else if (userStates.count == 10) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Explorer III'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
+  } else if (userStates.count == 20) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Explorer IV'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
+  } else if (userStates.count == 50) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Explorer V'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
   }
 
-  // handle city-based badges
-  if (result.uniqueCities == 50) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 1)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueCities == 100) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 2)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueCities == 200) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 3)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueCities == 500) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 4)");
-    stmtInsertUserBadge.run(req.user.id);
-  } else if (result.uniqueCities == 1000) {
-    // insert into UserBadges
-    const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, 5)");
-    stmtInsertUserBadge.run(req.user.id);
+  // City badges - Count unique cities visited
+  const stmtGetUserCities = db.prepare(`
+      SELECT COUNT(DISTINCT l.city || '_' || l.state) as count
+      FROM History h
+      JOIN Locations l ON h.location_id = l.id
+      WHERE h.user_id = ?
+  `);
+  const userCities = stmtGetUserCities.get(req.user.id);
+
+  // Check city badge thresholds
+  if (userCities.count == 10) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Tourist I'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
+  } else if (userCities.count == 20) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Tourist II'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
+  } else if (userCities.count == 50) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Tourist III'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
+  } else if (userCities.count == 100) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Tourist IV'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
+  } else if (userCities.count == 500) {
+      const badgeIdStmt = db.prepare("SELECT id FROM Badges WHERE name = 'Tourist V'");
+      const stmtInsertUserBadge = db.prepare("INSERT INTO UserBadges (user_id, badge_id) VALUES (?, ?)");
+      stmtInsertUserBadge.run(req.user.id, badgeIdStmt.get().id);
+      isBadge = true;
   }
 
   res.status(200).json({
@@ -453,27 +438,10 @@ router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken,
       data: {
         city: city,
         state: state,
-        is_gem: isGem
+        isGem: isGem,
+        isBadge: isBadge
       },
   });
-  
-  try {
-  // PRETTY SURE THIS IS NOT NEEDED AND RESULTS IN OUR RATE LIMIT ERROR
-  //    res.status(200).json({
-  //      error: false,
-  //      data: await getCityFromCoordinates(latitude, longitude),
-  //    });
-  } catch (error) {
-    console.error("Geocode route error:", error);
-    res.status(500).json({
-      error: true,
-      data: {
-        message: process.env.NODE_ENV === 'development' ? 
-          error.stack :
-          "Internal server error",
-      },
-    });
-  }
 });
 
 /**
@@ -491,13 +459,13 @@ router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken,
  *         required: true
  *         schema:
  *           type: string
- *         description: The starting point of the trip
+ *         description: The starting lat,long of the trip
  *       - in: path
  *         name: ending
  *         required: true
  *         schema:
  *           type: string
- *         description: The ending point of the trip
+ *         description: The ending lat,long of the trip
  *       - in: header
  *         name: Authorization
  *         required: true
@@ -525,10 +493,12 @@ router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken,
  *                       type: number
  *                     time:
  *                       type: number
- *       401:
- *         description: Unauthorized - Invalid or missing token
+ *                     prettySteps:
+ *                       type: array
  *       400:
  *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */
@@ -547,7 +517,6 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     const [endLat, endLon] = ending.split(",");
 
     const startTown = await getAddressFromCoordinates(startLat, startLon);
-    await new Promise(resolve => setTimeout(resolve, 3000));
     const endTown = await getAddressFromCoordinates(endLat, endLon);
 
     startAddress = startTown.city + ", " + startTown.state;
@@ -629,13 +598,13 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
  *         required: true
  *         schema:
  *           type: string
- *         description: The starting point of the trip
+ *         description: The starting lat,long of the trip
  *       - in: path
  *         name: ending
  *         required: true
  *         schema:
  *           type: string
- *         description: The ending point of the trip
+ *         description: The ending lat,long of the trip
  *       - in: header
  *         name: Authorization
  *         required: true
@@ -661,10 +630,12 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
  *                       type: number
  *                     time:
  *                       type: number
- *       401:
- *         description: Unauthorized - Invalid or missing token
+ *                     prettySteps:
+ *                       type: array
  *       400:
  *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */

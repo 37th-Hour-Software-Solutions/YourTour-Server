@@ -9,26 +9,13 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
 
 /**
  * @swagger
- * components:
- *  securitySchemes:
- *    bearerAuth:
- *     type: http
- *     scheme: bearer
- *     bearerFormat: JWT
  * /profile:
  *   get:
  *     summary: Get user profile
- *     description: Returns the user's profile information
+ *     description: Retrieves user profile information, including badges, gems, and interests.
  *     security:
  *       - bearerAuth: []
  *     tags: [Users]
- *     parameters:
- *       - in: header
- *         name: Authorization
- *         required: true
- *         schema:
- *           type: string
- *         description: Bearer token for authentication
  *     responses:
  *       200:
  *         description: User profile retrieved successfully
@@ -41,42 +28,57 @@ const { authenticateAccessToken } = require("../middleware/auth.js");
  *                   type: boolean
  *                 data:
  *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: number
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     homestate:
+ *                       type: string
+ *                     badges:
+ *                       type: array
+ *                     gems:
+ *                       type: array
+ *                     interests:
+ *                       type: array
+ *                     gemsFound:
+ *                       type: number
+ *                     badgesFound:
+ *                       type: number
  *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                 data:
- *                   type: object
+ *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */
 router.get('/', authenticateAccessToken, async (req, res) => {
-  const getUserStmt = db.prepare('SELECT id, username, email, phone, homestate, gemsFound FROM Users WHERE id = ?');
+  const getUserStmt = db.prepare('SELECT id, username, email, phone, homestate FROM Users WHERE id = ?');
   
   const getUserBadgesStmt = db.prepare(`SELECT b.name, b.description, b.static_image_url FROM Badges b JOIN UserBadges ub ON b.id = ub.badge_id WHERE ub.user_id = ?`);
+  const getUserGemsStmt = db.prepare(`SELECT g.city, g.state, g.description FROM Gems g JOIN UserGems ug ON g.id = ug.gem_id WHERE ug.user_id = ?`);
   const getUserInterestsStmt = db.prepare(`SELECT i.name FROM Interests i JOIN UserInterests ui ON i.id = ui.interest_id WHERE ui.user_id = ?`);
 
   try {
-      let user = getUserStmt.get(req.user.id);
-      user.badges = getUserBadgesStmt.all(req.user.id);
-      user.interests = getUserInterestsStmt.all(req.user.id);
-      console.log(user.badges);
-      return res.json({ error: false, data: user});
+    let user = getUserStmt.get(req.user.id);
+    user.badges = getUserBadgesStmt.all(req.user.id);
+    user.interests = getUserInterestsStmt.all(req.user.id);
+    user.gems = getUserGemsStmt.all(req.user.id);
+    user.gemsFound = user.gems.length;
+    user.badgesFound = user.badges.length;
+    return res.json({ error: false, data: user});
   } catch (error) {
-      console.error('Profile error:', error);
-      return res.status(500).json({
-          error: true,
-          data: {
-              message: process.env.NODE_ENV === 'development' ? 
-                  error.stack : 
-                  'Internal server error'
-          }
-      });
+    console.error('Profile error:', error);
+    return res.status(500).json({
+      error: true,
+      data: {
+        message: process.env.NODE_ENV === 'development' ? 
+          error.stack : 
+          'Internal server error'
+        }
+    });
   }
 });
 

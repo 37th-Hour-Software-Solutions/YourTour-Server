@@ -830,13 +830,12 @@ const generateCityFacts = async (userID, city, state, tripId) => {
       "SELECT * FROM Locations WHERE city = ? AND state = ?"
     );
     const insertStmt = db.prepare(
-      "INSERT INTO Locations (city, state, facts, is_gem) VALUES (?, ?, ?, ?)"
+      "INSERT INTO Locations (city, state, facts) VALUES (?, ?, ?)"
     );
 
 
     const userInterests = db.prepare("SELECT name FROM userInterests uin JOIN Interests interest ON interest.id = uin.interest_id WHERE uin.user_id = ? ").all(userID);
     const mappedInterests = userInterests.map(interest => interest.name);
-    // Check if we have cached data
     const existingLocation = selectStmt.get(city, state);
 
     if (existingLocation) {
@@ -852,10 +851,9 @@ const generateCityFacts = async (userID, city, state, tripId) => {
     // Generate new data
     const text = await getTextFromWikipedia(city, state);
     const summary = await summarizeText(text, city, state);
-    
 
     // Store in database
-    const result = insertStmt.run(city, state, JSON.stringify(summary), isGem ? 1 : 0);
+    const result = insertStmt.run(city, state, JSON.stringify(summary));
 
     return {
       id: result.lastInsertRowid,
