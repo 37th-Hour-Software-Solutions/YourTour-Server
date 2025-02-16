@@ -28,7 +28,8 @@ async function init() {
       city TEXT NOT NULL,
       state TEXT NOT NULL,
       facts JSON NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME NOT NULL DEFAULT (DATETIME(CURRENT_TIMESTAMP, '+1 YEAR'))
     )
   `);
 
@@ -59,7 +60,7 @@ async function init() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS Badges (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
+      name TEXT NOT NULL UNIQUE,
       description TEXT NOT NULL,
       static_image_url TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -72,14 +73,15 @@ async function init() {
       city TEXT NOT NULL,
       state TEXT NOT NULL,
       description TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (city, state)
     )
   `);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS Interests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
+      name TEXT NOT NULL UNIQUE,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -91,7 +93,8 @@ async function init() {
       badge_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES Users(id),
-      FOREIGN KEY (badge_id) REFERENCES Badges(id)
+      FOREIGN KEY (badge_id) REFERENCES Badges(id),
+      UNIQUE (user_id, badge_id)
     )
   `);
 
@@ -102,7 +105,8 @@ async function init() {
       gem_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES Users(id),
-      FOREIGN KEY (gem_id) REFERENCES Gems(id)
+      FOREIGN KEY (gem_id) REFERENCES Gems(id),
+      UNIQUE (user_id, gem_id)
     )
   `);
 
@@ -113,19 +117,20 @@ async function init() {
       interest_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES Users(id),
-      FOREIGN KEY (interest_id) REFERENCES Interests(id)
+      FOREIGN KEY (interest_id) REFERENCES Interests(id),
+      UNIQUE (user_id, interest_id)
     )
   `);
 
   // Create unique indexes
-  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_badge_name ON Badges(name)`);
-  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_badges ON UserBadges(user_id, badge_id)`);
+  // db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_badge_name ON Badges(name)`);
+  // db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_badges ON UserBadges(user_id, badge_id)`);
 
-  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_gem_city_state ON Gems(city, state)`);
-  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_gems ON UserGems(user_id, gem_id)`);
+  // db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_gem_city_state ON Gems(city, state)`);
+  // db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_gems ON UserGems(user_id, gem_id)`);
 
-  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_interest_name ON Interests(name)`);
-  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_interests ON UserInterests(user_id, interest_id)`);
+  // db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_interest_name ON Interests(name)`);
+  // db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_interests ON UserInterests(user_id, interest_id)`);
 
   const stmtBadges = db.prepare(`INSERT OR IGNORE INTO Badges (name, description, static_image_url) VALUES (?, ?, ?)`);
   BADGES.forEach(badge => stmtBadges.run(badge.name, badge.description, badge.static_image_url));

@@ -86,7 +86,6 @@ const getCityFromCoordinates = async (latitude, longitude) => {
       }
     });
 
-    console.log(response.data);
     if (response.data.length === 0) {
       throw new Error(`Geocoding failed: No results found`);
     }
@@ -349,8 +348,6 @@ router.get('/geocode/reverse/poi/:latitude/:longitude', authenticateAccessToken,
   // Determine if the city is a gem
   const isGem = await db.prepare("SELECT COUNT(*) count FROM Gems WHERE city = ? AND state = ?").get(city, state).count > 0;
 
-  console.log("aaa ", isGem);
-
   if (isGem) {
     const stmtInsertUserGem = db.prepare("INSERT OR IGNORE INTO UserGems (user_id, gem_id) VALUES (?, (SELECT id FROM Gems WHERE city = ? AND state = ?))");
     stmtInsertUserGem.run(req.user.id, city, state);
@@ -531,7 +528,6 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
       "INSERT INTO Trips (user_id, startingTown, endingTown) VALUES (?,?,?)"
     );
     const result = insertTripStmt.run(req.user.id, startAddress, endAddress);
-    console.log(result);
     
     const tripId = result.lastInsertRowid;
     const osmURL = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
@@ -550,7 +546,6 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
       leg.steps.forEach((step) => {
         const stepDistance = (step.distance / 1609.34).toFixed(2);
         const instruction = osrmTextInstructions.compile("en", step);
-        console.log(`(${stepDistance} miles): ${instruction}`);
         prettySteps.push({
           distance: stepDistance,
           instruction: instruction
@@ -660,7 +655,6 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
 
     // Fetch the route data
     const osmURL = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startLongLat};${endLongLat}?overview=full&alternatives=false&steps=true`;
-    console.log(osmURL);
 
     const response = await axios.get(osmURL);
     const route = response.data;
@@ -669,9 +663,6 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
     const distance = (route.routes[0].distance / 1609.34).toFixed(2);
     const time = Math.ceil(route.routes[0].duration / 60);
 
-    console.log(`Distance: ${distance} miles`);
-    console.log(`Time: ${time} minutes`);
-
     const legs = route.routes[0].legs;
     const prettySteps = [];
 
@@ -679,7 +670,6 @@ router.get("/directions/preview/:starting/:ending", authenticateAccessToken, asy
       leg.steps.forEach((step) => {
         const stepDistance = (step.distance / 1609.34).toFixed(2);
         const instruction = osrmTextInstructions.compile("en", step);
-        console.log(`(${stepDistance} miles): ${instruction}`);
         prettySteps.push({
           distance: stepDistance,
           instruction: instruction
@@ -786,7 +776,6 @@ const fetchSuggestions = async ( coords, query) => {
 // Autocomplete route to get suggestions
 router.get('/autocomplete/:latitude/:longitude/:query', authenticateAccessToken, async (req, res) => {
   const { latitude, longitude, query } = req.params;  // Get query and location from request
-  console.log(latitude + ',' + longitude + ': ' + query)
   try {
     const suggestions = await fetchSuggestions(latitude + ',' + longitude, query);
     res.status(200).json({ error: false, data: suggestions });

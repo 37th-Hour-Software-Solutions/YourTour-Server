@@ -249,7 +249,6 @@ router.post('/update', validateFields(profileSchema), authenticateAccessToken, a
       }
     }
 
-    console.log(sqlSetParts);
     // If there are any fields to update, update the user
     if (sqlSetParts.length > 0) {
       const sqlQuery = `

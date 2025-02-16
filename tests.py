@@ -5,6 +5,23 @@ import random
 import string
 import time
 
+red = '\033[91m'
+green = '\033[92m'
+blue = '\033[94m'
+reset = '\033[0m'
+
+DEBUG = False
+
+def print_test_result(response, test_name):
+    if str(response.status_code)[0] == '2':
+        print(f"{green}[TEST] {test_name} successful{reset}")
+    else:
+        print(f"{red}[TEST] {test_name} failed{reset}")
+        
+def print_debug(response):
+    if DEBUG:
+        print(response.json())
+
 def generate_random_email():
     return f'{random.randint(1000000000, 9999999999)}@gmail.com'
 
@@ -28,14 +45,17 @@ def test_register(email, username, password):
         'homestate': 'NY',
         'interests': ['history', 'food', 'sports']
     })
-    print(response.json())
+    
+    print_test_result(response, 'Register')
+    print_debug(response)
     
 def test_login(email, password):
     response = requests.post('http://localhost:3000/auth/login', json={
         'email': email,
         'password': password
     })
-    print(response.json())
+    print_test_result(response, 'Login')
+    print_debug(response)
     accessToken = response.json()['data']['accessToken']
     refreshToken = response.json()['data']['refreshToken']
     return accessToken, refreshToken
@@ -44,13 +64,15 @@ def test_generate(accessToken, tripId, city, state):
     response = requests.get(f'http://localhost:3000/generate/trip/{tripId}/city/{city}/{state}', headers={
         'Authorization': f'{accessToken}'
     })
-    print(response.json())
+    print_test_result(response, 'Generate')
+    print_debug(response)
     
 def test_profile(accessToken):
     response = requests.get('http://localhost:3000/profile', headers={
         'Authorization': f'{accessToken}'
     })
-    print(response.json())
+    print_test_result(response, 'Profile')
+    print_debug(response)
 
 
 def test_profile_update(accessToken):
@@ -58,40 +80,46 @@ def test_profile_update(accessToken):
         'Authorization': f'{accessToken}',
         'Content-Type': 'application/json'
     })
-    print(response.json())
+    print_test_result(response, 'Profile update')
+    print_debug(response)
 
 def test_geocode(accessToken, address):
     response = requests.get(f'http://localhost:3000/navigation/geocode/{address}', headers={
         'Authorization': f'{accessToken}'
     })
-    print(response.json())
+    print_test_result(response, 'Geocode')
+    print_debug(response)
     return response.json()['data']['latitude'], response.json()['data']['longitude']
 
 def test_turnbyturn(accessToken, startCords, endCords):
     response = requests.get(f'http://localhost:3000/navigation/directions/{startCords}/{endCords}', headers={
         'Authorization': f'{accessToken}'
     })
-    print(response.json())
+    print_test_result(response, 'Turn by turn')
+    print_debug(response)
     return response.json()['data']['tripId']
 
 def test_history(accessToken):
     response = requests.get(f'http://localhost:3000/history/', headers= {
         'Authorization': f'{accessToken}'
     })
-    print(response.json())
+    print_test_result(response, 'History')
+    print_debug(response)
     return response.json()
 
 def test_autocomplete(accessToken, coords, text):
     response = requests.get(f'http://localhost:3000/navigation/autocomplete/{coords}/{text}', headers={
         'Authorization': f'{accessToken}'
     })
-    print(response.json())
+    print_test_result(response, 'Autocomplete')
+    print_debug(response)
 
 def test_poi(accessToken, lat, lon):
     response = requests.get(f'http://localhost:3000/navigation/geocode/reverse/poi/{lat}/{lon}', headers= {
         'Authorization': f'{accessToken}'
     })
-    print(response.json())
+    print_test_result(response, 'POI')
+    print_debug(response)
     return response.json()['data']['city'], response.json()['data']['state']
 
 def test_spoof(accessToken, start, end):
@@ -143,8 +171,9 @@ ending_lat, ending_long = test_geocode(accessToken, '1000 N Dixie Ave, Cookevill
 
 # Test the turn-by-turn endpoint (Simulate generating a route (and thus, a new trip))
 tripId = test_turnbyturn(accessToken, f"{starting_lat},{starting_long}", f"{ending_lat},{ending_long}")
+
 # Test generate POI (Simulate given coords, generate a city state combo)
-city, state = test_poi(accessToken,'36.005243','-85.975284')
+city, state = test_poi(accessToken, '35.045631', '-85.309677')
 
 # Test the generate facts endpoint (Given a tripId, city, and state, generate facts)
 test_generate(accessToken, tripId, city, state)

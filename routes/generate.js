@@ -782,7 +782,6 @@ const extractInterest = async (facts , interests) => {
   Object.keys(facts).forEach(key => {
     if (interests.includes(key.toLowerCase())) {
       final[key] = facts[key];
-      console.log(key);
     }
   });
 
@@ -797,6 +796,10 @@ const extractInterest = async (facts , interests) => {
  * @throws {Error} If the summarization fails
  */
 const summarizeText = async (text, city, state) => {
+
+  console.log(models.SUMMARY_PROMPT);
+  console.log(`Here is the Wikipedia article for ${city}, ${state}: ${text}`);
+
   try {
     const response = await models.client.chat.completions.create({
       model: "gpt-4o",
@@ -939,7 +942,6 @@ router.get('/trip/:tripId/city/:city/:state', authenticateAccessToken, async (re
     const userId = req.user.id;
     const locationId = facts.id;
 
-    console.log(facts, userId, locationId, tripId);
     // check if the user already has a history entry for this city
     const existingHistory = db.prepare(
       "SELECT * FROM History WHERE user_id = ? AND location_id = ? AND trip_id = ?"
