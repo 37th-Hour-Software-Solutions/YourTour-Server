@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require("../utils/jwt.js");
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken, verifyAccessToken } = require("../utils/jwt.js");
 const { db } = require("../utils/database.js");
 const { validateFields } = require("../middleware/validate.js");
 const { registerSchema } = require("../schemas/register.js");
 const { loginSchema } = require("../schemas/login.js");
 const { refreshSchema } = require("../schemas/refresh.js");
+const { verifySchema } = require("../schemas/verify.js");
 const { authenticateAccessToken } = require("../middleware/auth.js");
 
 /**
@@ -280,6 +281,8 @@ router.post('/login', validateFields(loginSchema), async (req, res) => {
  *                   type: string
  *       400:
  *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
@@ -296,8 +299,7 @@ router.post('/refresh', validateFields(refreshSchema), async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Refresh error:", error);
-    return res.status(500).json({
+    return res.status(401).json({
       error: true,
       data: {
         message: process.env.NODE_ENV === 'development' ? 
@@ -308,6 +310,52 @@ router.post('/refresh', validateFields(refreshSchema), async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/verify:
+ *   post:
+ *     summary: Verify access token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - accessToken
+ *             properties:
+ *               accessToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Token is valid
+ *       400:
+ *         description: Invalid request parameters
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.post('/verify', validateFields(verifySchema), async (req, res) => {
+  const { accessToken } = req.body;
 
+  try {
+    verifyAccessToken(accessToken);
+    return res.json({
+      error: false,
+      data: { message: "Token is valid" },
+    });
+  } catch (error) {
+    return res.status(401).json({
+      error: true,
+      data: { 
+        message: process.env.NODE_ENV === 'development' ? 
+          error.stack :
+          "Internal server error",
+      },
+    });
+  }
+});
 
 module.exports = router;

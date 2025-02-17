@@ -797,9 +797,6 @@ const extractInterest = async (facts , interests) => {
  */
 const summarizeText = async (text, city, state) => {
 
-  console.log(models.SUMMARY_PROMPT);
-  console.log(`Here is the Wikipedia article for ${city}, ${state}: ${text}`);
-
   try {
     const response = await models.client.chat.completions.create({
       model: "gpt-4o",

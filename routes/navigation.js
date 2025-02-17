@@ -538,7 +538,6 @@ router.get("/directions/:starting/:ending", authenticateAccessToken, async (req,
     // Get the distance and time of the route
     const distance = (route['distance'] / 1609.34).toFixed(2);
     const time = Math.ceil(route['duration'] / 60);
-
     const legs = route['legs'];
     const prettySteps = [];
 

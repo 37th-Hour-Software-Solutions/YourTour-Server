@@ -68,9 +68,11 @@ router.get('/', authenticateAccessToken, async (req, res) => {
     user.gems = getUserGemsStmt.all(req.user.id);
     user.gemsFound = user.gems.length;
     user.badgesFound = user.badges.length;
+    user.citiesFound = 0;
+    user.statesFound = 0;
+    user.profilePictureBlob = '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';
     return res.json({ error: false, data: user});
   } catch (error) {
-    console.error('Profile error:', error);
     return res.status(500).json({
       error: true,
       data: {
@@ -167,7 +169,7 @@ router.post('/update', validateFields(profileSchema), authenticateAccessToken, a
     
     const user = db.prepare('SELECT * FROM Users WHERE id = ?').get(req.user.id);     
 
-    if(oldPassword) {
+    if (oldPassword) {
       // Make sure the old password is correct, otherwise fail to update
       if (!bcrypt.compareSync(oldPassword, user.hashedPassword)) {
         return res.status(400).json({
